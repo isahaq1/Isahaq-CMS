@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: group-cms-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: groupcms
+      POSTGRES_PASSWORD: groupcms_secret
+      POSTGRES_DB: group_cms
+    ports:
+      - "5434:5432"
+    volumes:
+      - group_cms_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U groupcms -d group_cms"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  group_cms_pgdata:

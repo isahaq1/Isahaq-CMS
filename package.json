@@ -1,0 +1,29 @@
+{
+  "name": "group-cms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Drag-and-drop CMS for managing group company websites",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
+    "dev:api": "npm run dev --workspace=@group-cms/api",
+    "dev:web": "npm run dev --workspace=@group-cms/web",
+    "build": "npm run build --workspaces --if-present",
+    "db:generate": "npm run db:generate --workspace=@group-cms/api",
+    "db:migrate": "npm run db:migrate --workspace=@group-cms/api",
+    "db:push": "npm run db:push --workspace=@group-cms/api",
+    "db:seed": "npm run db:seed --workspace=@group-cms/api",
+    "db:studio": "npm run db:studio --workspace=@group-cms/api",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

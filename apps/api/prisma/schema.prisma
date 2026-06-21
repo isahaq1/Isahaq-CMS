@@ -1,0 +1,173 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  GROUP_ADMIN
+  COMPANY_ADMIN
+  EDITOR
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      UserRole @default(EDITOR)
+  avatar    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  groupAccess    UserGroupAccess[]
+  companyAccess  UserCompanyAccess[]
+  activities     ActivityLog[]
+}
+
+model UserGroupAccess {
+  id      String @id @default(uuid())
+  userId  String
+  groupId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group   CompanyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+}
+
+model UserCompanyAccess {
+  id        String  @id @default(uuid())
+  userId    String
+  companyId String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, companyId])
+}
+
+model CompanyGroup {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  logo        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  companies Company[]
+  users     UserGroupAccess[]
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  groupId     String
+  name        String
+  slug        String
+  description String?
+  logo        String?
+  website     String?
+  email       String?
+  phone       String?
+  address     String?
+  theme       Json     @default("{\"primaryColor\":\"#2563eb\",\"secondaryColor\":\"#1e40af\",\"fontFamily\":\"Inter, sans-serif\",\"borderRadius\":\"0.5rem\"}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  group   CompanyGroup      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sites   Site[]
+  media   Media[]
+  users   UserCompanyAccess[]
+
+  @@unique([groupId, slug])
+}
+
+model Site {
+  id          String   @id @default(uuid())
+  companyId   String
+  name        String
+  domain      String?
+  isPublished Boolean  @default(false)
+  settings    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  company     Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  pages       Page[]
+  navigations Navigation[]
+}
+
+model Page {
+  id          String   @id @default(uuid())
+  siteId      String
+  title       String
+  slug        String
+  blocks      Json     @default("[]")
+  isHomePage  Boolean  @default(false)
+  isPublished Boolean  @default(false)
+  seo         Json     @default("{}")
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, slug])
+}
+
+model Navigation {
+  id        String   @id @default(uuid())
+  siteId    String
+  name      String
+  position  String   @default("header")
+  items     Json     @default("[]")
+  settings  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site Site @relation(fields: [siteId], references: [id], onDelete: Cascade)
+
+  @@unique([siteId, position])
+}
+
+model Media {
+  id           String   @id @default(uuid())
+  companyId    String
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  type         String   @default("image")
+  alt          String?
+  createdAt    DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Language {
+  id         String   @id @default(uuid())
+  code       String   @unique
+  name       String
+  nativeName String
+  isDefault  Boolean  @default(false)
+  isActive   Boolean  @default(true)
+  isRTL      Boolean  @default(false)
+  createdAt  DateTime @default(now())
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  userId     String
+  action     String
+  entityType String
+  entityId   String
+  entityName String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
