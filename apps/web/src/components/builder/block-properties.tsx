@@ -57,7 +57,7 @@ const FEATURE_ICONS = [
   'Star', 'Zap', 'Shield', 'Heart', 'Check', 'Globe', 'Settings', 'Lock',
   'Rocket', 'Clock', 'Users', 'Mail', 'Phone', 'Code', 'Database', 'Cloud',
   'Award', 'Lightbulb', 'Target', 'TrendingUp', 'Layers', 'Box', 'Cpu',
-  'Eye', 'Headphones', 'Map', 'MessageCircle', 'Smile', 'Thumbsup',
+  'Eye', 'Headphones', 'Map', 'MessageCircle', 'Smile', 'ThumbsUp',
   'Wrench', 'BarChart', 'Search',
 ];
 
@@ -378,17 +378,27 @@ function TestimonialsEditor({ items, onChange, companyId }: { items: Testimonial
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Avatar</label>
-                <div className="flex gap-2">
-                  <input className="input text-sm flex-1 min-w-0" value={item.avatar} onChange={(e) => upd(i, 'avatar', e.target.value)} placeholder="Paste URL or browse…" />
-                  {companyId && (
-                    <button type="button" className="btn-secondary shrink-0 p-2" onClick={() => setPickerIdx(i)}>
-                      <ImageIcon className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-                {item.avatar && (
-                  <img src={item.avatar} alt={item.name} className="w-12 h-12 rounded-full object-cover mt-1"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                {companyId ? (
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 rounded-full bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center border">
+                      {item.avatar
+                        ? <img src={item.avatar} alt={item.name} className="w-full h-full object-cover"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        : <ImageIcon className="w-5 h-5 text-gray-400" />}
+                    </div>
+                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                      <button type="button" className="btn-secondary btn-sm w-full" onClick={() => setPickerIdx(i)}>
+                        <ImageIcon className="w-3.5 h-3.5" /> {item.avatar ? 'Change Photo' : 'Upload Photo'}
+                      </button>
+                      {item.avatar && (
+                        <button type="button" className="text-xs text-red-400 hover:text-red-600" onClick={() => upd(i, 'avatar', '')}>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <input className="input text-sm" value={item.avatar} onChange={(e) => upd(i, 'avatar', e.target.value)} placeholder="https://…" />
                 )}
               </div>
             </div>
@@ -442,17 +452,27 @@ function TeamEditor({ members, onChange, companyId }: { members: TeamMember[]; o
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Photo</label>
-                <div className="flex gap-2">
-                  <input className="input text-sm flex-1 min-w-0" value={member.image} onChange={(e) => upd(i, 'image', e.target.value)} placeholder="Paste URL or browse…" />
-                  {companyId && (
-                    <button type="button" className="btn-secondary shrink-0 p-2" onClick={() => setPickerIdx(i)}>
-                      <ImageIcon className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-                {member.image && (
-                  <img src={member.image} alt={member.name} className="w-16 h-16 rounded-full object-cover mt-1"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                {companyId ? (
+                  <div className="flex items-center gap-3">
+                    <div className="w-16 h-16 rounded-full bg-gray-100 overflow-hidden shrink-0 flex items-center justify-center border">
+                      {member.image
+                        ? <img src={member.image} alt={member.name} className="w-full h-full object-cover"
+                            onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                        : <ImageIcon className="w-6 h-6 text-gray-400" />}
+                    </div>
+                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
+                      <button type="button" className="btn-secondary btn-sm w-full" onClick={() => setPickerIdx(i)}>
+                        <ImageIcon className="w-3.5 h-3.5" /> {member.image ? 'Change Photo' : 'Upload Photo'}
+                      </button>
+                      {member.image && (
+                        <button type="button" className="text-xs text-red-400 hover:text-red-600" onClick={() => upd(i, 'image', '')}>
+                          Remove
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <input className="input text-sm" value={member.image} onChange={(e) => upd(i, 'image', e.target.value)} placeholder="https://…" />
                 )}
               </div>
               <div className="space-y-1">

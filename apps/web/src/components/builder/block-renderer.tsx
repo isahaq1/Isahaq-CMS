@@ -7,7 +7,7 @@ import {
   Heart, Check, Globe, Settings, Lock, Rocket, Clock,
   Users, Mail, Phone, Code, Database, Cloud, Award,
   Lightbulb, Target, TrendingUp, Layers, Box, Cpu,
-  Eye, Headphones, Map, MessageCircle, Smile, Thumbsup,
+  Eye, Headphones, Map, MessageCircle, Smile, ThumbsUp,
   Wrench, BarChart, Search,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -25,7 +25,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Star, Zap, Shield, Heart, Check, Globe, Settings, Lock, Rocket, Clock,
   Users, Mail, Phone, Code, Database, Cloud, Award, Lightbulb, Target,
   TrendingUp, Layers, Box, Cpu, Eye, Headphones, Map, MessageCircle,
-  Smile, Thumbsup, Wrench, BarChart, Search,
+  Smile, ThumbsUp, Wrench, BarChart, Search,
 };
 
 // Maps shorthand font keys to CSS font-family stacks
@@ -145,11 +145,14 @@ type Slide = { src: string; alt: unknown; title?: unknown; subtitle?: unknown; l
 // Falls back to the URL as-is (e.g. user already provided an embed URL).
 function toEmbedUrl(url: string): string {
   if (!url) return '';
-  // YouTube: watch?v=, youtu.be/, shorts/, already embed/
-  const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  // YouTube — uses youtube-nocookie.com (privacy-enhanced, more permissive for embedding)
+  // Handles: watch?v=, youtu.be/, shorts/, m.youtube, already-embed URLs
+  const ytId = url.match(
+    /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/
+  );
+  if (ytId) return `https://www.youtube-nocookie.com/embed/${ytId[1]}`;
   // Vimeo
-  const vimeo = url.match(/(?:vimeo\.com\/)(\d+)/);
+  const vimeo = url.match(/vimeo\.com\/(\d+)/);
   if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
   // Dailymotion
   const dm = url.match(/dailymotion\.com\/video\/([a-zA-Z0-9]+)/);
