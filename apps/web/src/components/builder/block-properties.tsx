@@ -120,12 +120,7 @@ function FeaturesItemsEditor({
 
           <div className="space-y-1">
             <label className="label text-xs">Description</label>
-            <textarea
-              className="input text-sm min-h-[64px] resize-y"
-              placeholder="Feature description"
-              value={item.description}
-              onChange={(e) => update(i, 'description', e.target.value)}
-            />
+            <FooterTextEditor value={item.description} onChange={(html) => update(i, 'description', html)} compact />
           </div>
         </div>
       ))}
@@ -284,7 +279,7 @@ function FaqEditor({ items, onChange }: { items: FaqItem[]; onChange: (next: Faq
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Answer</label>
-                <textarea className="input text-sm min-h-[80px] resize-y" value={item.answer} onChange={(e) => upd(i, 'answer', e.target.value)} placeholder="Answer text" />
+                <FooterTextEditor value={item.answer} onChange={(html) => upd(i, 'answer', html)} compact />
               </div>
             </div>
           )}
@@ -374,7 +369,7 @@ function TestimonialsEditor({ items, onChange, companyId }: { items: Testimonial
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Quote</label>
-                <textarea className="input text-sm min-h-[72px] resize-y" value={item.text} onChange={(e) => upd(i, 'text', e.target.value)} placeholder="What they said…" />
+                <FooterTextEditor value={item.text} onChange={(html) => upd(i, 'text', html)} compact />
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Avatar</label>
@@ -477,7 +472,7 @@ function TeamEditor({ members, onChange, companyId }: { members: TeamMember[]; o
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Bio</label>
-                <textarea className="input text-sm min-h-[60px] resize-y" value={member.bio} onChange={(e) => upd(i, 'bio', e.target.value)} placeholder="Short bio…" />
+                <FooterTextEditor value={member.bio} onChange={(html) => upd(i, 'bio', html)} compact />
               </div>
             </div>
           )}
@@ -536,7 +531,7 @@ function PricingEditor({ plans, onChange }: { plans: PricingPlan[]; onChange: (n
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Description</label>
-                <textarea className="input text-sm min-h-[60px] resize-y" value={plan.description} onChange={(e) => upd(i, 'description', e.target.value)} placeholder="Short plan description" />
+                <FooterTextEditor value={plan.description} onChange={(html) => upd(i, 'description', html)} compact />
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Features <span className="font-normal text-muted-foreground">(one per line)</span></label>
@@ -733,8 +728,7 @@ export function BlockProperties({ block, onChange, companyId, currentLang }: Blo
         <div key={key} className="space-y-1">
           <label className="label capitalize">{key.replace(/([A-Z])/g, ' $1')}</label>
           {isArea
-            ? <textarea className="input min-h-[120px] font-mono text-xs" value={langVal}
-                onChange={(e) => update(key, setLangValue(value, currentLang, e.target.value))} />
+            ? <FooterTextEditor value={langVal} onChange={(html) => update(key, setLangValue(value, currentLang, html))} compact />
             : <input className="input" value={langVal}
                 onChange={(e) => update(key, setLangValue(value, currentLang, e.target.value))} />}
         </div>
@@ -754,7 +748,7 @@ export function BlockProperties({ block, onChange, companyId, currentLang }: Blo
       return (
         <div key={key} className="space-y-1">
           <label className="label capitalize">{key}</label>
-          <textarea className="input min-h-[120px] font-mono text-xs" value={String(value)} onChange={(e) => update(key, e.target.value)} />
+          <FooterTextEditor value={String(value || '')} onChange={(html) => update(key, html)} compact />
         </div>
       );
     }
