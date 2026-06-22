@@ -281,7 +281,7 @@ function FaqEditor({ items, onChange }: { items: FaqItem[]; onChange: (next: Faq
             <div className="p-3 space-y-2 border-t">
               <div className="space-y-1">
                 <label className="label text-xs">Question</label>
-                <input className="input text-sm" value={item.question} onChange={(e) => upd(i, 'question', e.target.value)} placeholder="Question text" />
+                <textarea className="input text-sm min-h-[52px] resize-y" value={item.question} onChange={(e) => upd(i, 'question', e.target.value)} placeholder="Question text" />
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Answer</label>
@@ -481,7 +481,7 @@ function PricingEditor({ plans, onChange }: { plans: PricingPlan[]; onChange: (n
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Description</label>
-                <input className="input text-sm" value={plan.description} onChange={(e) => upd(i, 'description', e.target.value)} placeholder="Short plan description" />
+                <textarea className="input text-sm min-h-[60px] resize-y" value={plan.description} onChange={(e) => upd(i, 'description', e.target.value)} placeholder="Short plan description" />
               </div>
               <div className="space-y-1">
                 <label className="label text-xs">Features <span className="font-normal text-muted-foreground">(one per line)</span></label>
@@ -672,7 +672,7 @@ export function BlockProperties({ block, onChange, companyId, currentLang }: Blo
 
     if (TRANSLATABLE_KEYS.has(key) && currentLang) {
       const langVal = getLangValue(value, currentLang);
-      const isArea = key === 'content';
+      const isArea = key === 'content' || key === 'description' || key === 'subtitle';
       return (
         <div key={key} className="space-y-1">
           <label className="label capitalize">{key.replace(/([A-Z])/g, ' $1')}</label>
