@@ -83,7 +83,7 @@ export default function PreviewPage() {
       />
       <main className="flex-1">
         {page.blocks.map((block) => (
-          <BlockRenderer key={block.id} block={block} isPreview primaryColor={primaryColor} />
+          <BlockRenderer key={block.id} block={block} isPreview primaryColor={primaryColor} companyLogo={companyLogo} />
         ))}
       </main>
       <SiteFooter

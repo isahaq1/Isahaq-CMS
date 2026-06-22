@@ -886,12 +886,12 @@ interface PageBuilderProps {
 }
 
 function SortableBlock({
-  block, isSelected, onSelect, onDelete, onDuplicate, primaryColor, language,
+  block, isSelected, onSelect, onDelete, onDuplicate, primaryColor, language, companyLogo,
 }: {
   block: PageBlock; isSelected: boolean;
   onSelect: (e?: React.MouseEvent) => void;
   onDelete: () => void; onDuplicate: () => void;
-  primaryColor?: string; language?: string;
+  primaryColor?: string; language?: string; companyLogo?: string;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: block.id });
@@ -915,7 +915,7 @@ function SortableBlock({
           <Trash2 className="w-4 h-4 text-red-400" />
         </button>
       </div>
-      <BlockRenderer block={block} primaryColor={primaryColor} language={language} />
+      <BlockRenderer block={block} primaryColor={primaryColor} language={language} companyLogo={companyLogo} />
     </div>
   );
 }
@@ -1102,7 +1102,7 @@ export function PageBuilder({ pageId, initialBlocks, pageTitle, onBack, primaryC
         />
         <main className="flex-1">
           {blocks.map((block) => (
-            <BlockRenderer key={block.id} block={block} isPreview primaryColor={primaryColor} language={currentLang} />
+            <BlockRenderer key={block.id} block={block} isPreview primaryColor={primaryColor} language={currentLang} companyLogo={companyLogo} />
           ))}
         </main>
         <SiteFooter
@@ -1245,6 +1245,7 @@ export function PageBuilder({ pageId, initialBlocks, pageTitle, onBack, primaryC
                       onDuplicate={() => duplicateBlock(block.id)}
                       primaryColor={primaryColor}
                       language={currentLang}
+                      companyLogo={companyLogo}
                     />
                   ))}
                 </SortableContext>
@@ -1252,7 +1253,7 @@ export function PageBuilder({ pageId, initialBlocks, pageTitle, onBack, primaryC
                   {activeId ? (
                     <div className="opacity-80 shadow-2xl">
                       <BlockRenderer block={blocks.find((b) => b.id === activeId)!}
-                        primaryColor={primaryColor} language={currentLang} />
+                        primaryColor={primaryColor} language={currentLang} companyLogo={companyLogo} />
                     </div>
                   ) : null}
                 </DragOverlay>

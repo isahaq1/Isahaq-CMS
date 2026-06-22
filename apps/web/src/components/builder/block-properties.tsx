@@ -815,6 +815,21 @@ export function BlockProperties({ block, onChange, companyId, currentLang }: Blo
       );
     }
 
+    if (key === 'size' && block.type === 'logo') {
+      return (
+        <div key={key} className="space-y-1">
+          <label className="label">Logo Size</label>
+          <select className="input" value={String(value || 'md')} onChange={(e) => update(key, e.target.value)}>
+            <option value="xs">XS (24px)</option>
+            <option value="sm">Small (32px)</option>
+            <option value="md">Medium (48px)</option>
+            <option value="lg">Large (64px)</option>
+            <option value="xl">XL (96px)</option>
+          </select>
+        </div>
+      );
+    }
+
     if (key === 'items' || key === 'members') {
       return (
         <div key={key} className="space-y-1">

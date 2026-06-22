@@ -104,7 +104,8 @@ export type BlockType =
   | 'stats'
   | 'tabs'
   | 'logo-bar'
-  | 'countdown';
+  | 'countdown'
+  | 'logo';
 
 export interface PageBlock {
   id: string;
@@ -513,6 +514,21 @@ export const BLOCK_DEFINITIONS: BlockDefinition[] = [
       showHours: true,
       showMinutes: true,
       showSeconds: true,
+    },
+  },
+  {
+    type: 'logo',
+    label: 'Smart Logo',
+    icon: 'Aperture',
+    category: 'content',
+    defaultProps: {
+      useCompanyLogo: true,
+      src: '',
+      size: 'md',
+      alignment: 'left',
+      link: '',
+      openInNewTab: false,
+      caption: '',
     },
   },
 ];

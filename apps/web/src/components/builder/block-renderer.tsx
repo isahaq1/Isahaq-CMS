@@ -436,9 +436,10 @@ interface BlockRendererProps {
   isPreview?: boolean;
   primaryColor?: string;
   language?: string;
+  companyLogo?: string;
 }
 
-export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563eb', language = 'en' }: BlockRendererProps) {
+export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563eb', language = 'en', companyLogo = '' }: BlockRendererProps) {
   const { type, props } = block;
   const t = (v: unknown) => resolveText(v, language);
   const ap = getAppearance(props, primaryColor);
@@ -885,8 +886,9 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
           ) : (
             <div className="flex flex-wrap items-center justify-center gap-8">
               {logos.map((logo, i) => {
+                if (!logo.src) return null;
                 const img = (
-                  <img key={i} src={String(logo.src || '')} alt={String(logo.alt || '')}
+                  <img key={i} src={String(logo.src)} alt={String(logo.alt || '')}
                     className={cn('h-8 object-contain', props.grayscale !== false && 'grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all')}
                     style={{ maxWidth: '8rem' }} />
                 );
@@ -931,6 +933,38 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
             </div>
           )}
         </div>
+      );
+      break;
+    }
+
+    case 'logo': {
+      const logoSrc = String(props.src || '') || (props.useCompanyLogo !== false ? companyLogo : '');
+      const sizeMap: Record<string, string> = { xs: 'h-6', sm: 'h-8', md: 'h-12', lg: 'h-16', xl: 'h-24' };
+      const sizeClass = sizeMap[String(props.size || 'md')] || 'h-12';
+      const alignMap: Record<string, string> = { left: 'items-start', center: 'items-center', right: 'items-end' };
+      const alignClass = alignMap[String(props.alignment || 'left')] || 'items-start';
+
+      const logoEl = logoSrc ? (
+        <img src={logoSrc} alt="Logo" className={cn(sizeClass, 'w-auto object-contain')} />
+      ) : (
+        <span className={cn('flex items-center font-bold text-xl', sizeClass)} style={{ color: ap.headingStyle.color || primaryColor }}>
+          Logo
+        </span>
+      );
+
+      output = (
+        <section style={ap.sectionStyle}>
+          <div style={ap.containerStyle} className={cn('flex flex-col gap-2', alignClass)}>
+            {props.link ? (
+              <a href={String(props.link)} target={props.openInNewTab ? '_blank' : undefined} rel="noopener noreferrer">
+                {logoEl}
+              </a>
+            ) : logoEl}
+            {props.caption && (
+              <p className="text-sm" style={ap.bodyStyle}>{t(props.caption)}</p>
+            )}
+          </div>
+        </section>
       );
       break;
     }

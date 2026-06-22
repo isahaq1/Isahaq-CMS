@@ -118,6 +118,7 @@ export default function PreviewSlugPage() {
             block={block}
             isPreview
             primaryColor={primaryColor}
+            companyLogo={companyLogo}
           />
         ))}
       </main>
