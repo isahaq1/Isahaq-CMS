@@ -1,10 +1,9 @@
 import {
-  text, password, confirm, spinner, note, isCancel, cancel,
+  text, password, confirm, select, spinner, note, isCancel, cancel,
 } from '@clack/prompts';
 import pc from 'picocolors';
 import { testConnection, buildUrl } from '../utils/db.js';
 import { readEnv, writeEnv } from '../utils/env.js';
-import path from 'path';
 
 export async function runSetup(projectDir) {
   const existing = readEnv(projectDir);
@@ -12,12 +11,25 @@ export async function runSetup(projectDir) {
   note(
     existing.DATABASE_URL
       ? pc.yellow('DATABASE_URL already exists — values below will update it.')
-      : 'Enter your PostgreSQL database details.',
+      : 'Enter your database details.',
     'Database Configuration'
   );
 
-  // ── Prompt ──────────────────────────────────────────────────────────────────
+  // ── Database type ────────────────────────────────────────────────────────────
+  const dbType = await select({
+    message: 'Database type',
+    options: [
+      { value: 'postgresql', label: 'PostgreSQL' },
+      { value: 'mysql',      label: 'MySQL' },
+    ],
+    initialValue: existing.DB_TYPE || 'postgresql',
+  });
+  if (isCancel(dbType)) return cancel('Setup cancelled.');
 
+  const defaultPort = dbType === 'mysql' ? '3306' : '5432';
+  const defaultUser = dbType === 'mysql' ? 'root' : 'postgres';
+
+  // ── Host ─────────────────────────────────────────────────────────────────────
   const host = await text({
     message: 'Database host',
     placeholder: 'localhost',
@@ -25,14 +37,16 @@ export async function runSetup(projectDir) {
   });
   if (isCancel(host)) return cancel('Setup cancelled.');
 
+  // ── Port ─────────────────────────────────────────────────────────────────────
   const port = await text({
     message: 'Database port',
-    placeholder: '5432',
-    defaultValue: existing.DB_PORT || '5432',
+    placeholder: defaultPort,
+    defaultValue: existing.DB_PORT || defaultPort,
     validate: (v) => (isNaN(Number(v)) ? 'Must be a number' : undefined),
   });
   if (isCancel(port)) return cancel('Setup cancelled.');
 
+  // ── Database name ────────────────────────────────────────────────────────────
   const database = await text({
     message: 'Database name',
     placeholder: 'group_cms',
@@ -41,14 +55,16 @@ export async function runSetup(projectDir) {
   });
   if (isCancel(database)) return cancel('Setup cancelled.');
 
+  // ── User ─────────────────────────────────────────────────────────────────────
   const user = await text({
     message: 'Database user',
-    placeholder: 'postgres',
-    defaultValue: existing.DB_USER || 'postgres',
+    placeholder: defaultUser,
+    defaultValue: existing.DB_USER || defaultUser,
     validate: (v) => (!v.trim() ? 'Required' : undefined),
   });
   if (isCancel(user)) return cancel('Setup cancelled.');
 
+  // ── Password ─────────────────────────────────────────────────────────────────
   const pwd = await password({
     message: 'Database password',
     validate: (v) => (v === undefined ? 'Required' : undefined),
@@ -56,7 +72,6 @@ export async function runSetup(projectDir) {
   if (isCancel(pwd)) return cancel('Setup cancelled.');
 
   // ── JWT secret ───────────────────────────────────────────────────────────────
-
   const jwtSecret = await text({
     message: 'JWT secret (leave blank to auto-generate)',
     placeholder: '<auto-generate>',
@@ -65,17 +80,16 @@ export async function runSetup(projectDir) {
   if (isCancel(jwtSecret)) return cancel('Setup cancelled.');
 
   // ── Build URL ────────────────────────────────────────────────────────────────
-
   const url = buildUrl({
+    dbType,
     host: host || 'localhost',
-    port: port || '5432',
+    port: port || defaultPort,
     database: database || 'group_cms',
-    user: user || 'postgres',
+    user: user || defaultUser,
     password: pwd,
   });
 
   // ── Test connection ──────────────────────────────────────────────────────────
-
   const shouldTest = await confirm({
     message: 'Test database connection before saving?',
     initialValue: true,
@@ -99,15 +113,15 @@ export async function runSetup(projectDir) {
   }
 
   // ── Write .env ───────────────────────────────────────────────────────────────
-
   const secret = jwtSecret || generateSecret();
 
   const vars = {
     DATABASE_URL: url,
+    DB_TYPE: dbType,
     DB_HOST: host || 'localhost',
-    DB_PORT: port || '5432',
+    DB_PORT: port || defaultPort,
     DB_NAME: database || 'group_cms',
-    DB_USER: user || 'postgres',
+    DB_USER: user || defaultUser,
     JWT_SECRET: secret,
     JWT_EXPIRES_IN: existing.JWT_EXPIRES_IN || '7d',
     API_PORT: existing.API_PORT || '4000',
@@ -122,6 +136,7 @@ export async function runSetup(projectDir) {
   note(
     [
       `${pc.dim('File:')}     ${envPath}`,
+      `${pc.dim('Type:')}     ${dbType === 'mysql' ? 'MySQL' : 'PostgreSQL'}`,
       `${pc.dim('Host:')}     ${vars.DB_HOST}:${vars.DB_PORT}`,
       `${pc.dim('Database:')} ${vars.DB_NAME}`,
       `${pc.dim('User:')}     ${vars.DB_USER}`,

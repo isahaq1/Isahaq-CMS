@@ -13,8 +13,12 @@ async function main() {
   console.log('');
   intro(pc.bgCyan(pc.black(' create-group-cms ')));
 
-  if (!command || command === 'create') {
-    await runCreate(args[0] && !['setup', 'migrate'].includes(args[0]) ? args[0] : undefined);
+  const RESERVED = ['setup', 'migrate', 'create'];
+
+  if (!command || !RESERVED.includes(command)) {
+    await runCreate(command || undefined);
+  } else if (command === 'create') {
+    await runCreate(args[1] || undefined);
   } else if (command === 'setup') {
     const { runSetup } = await import('./commands/setup.js');
     await runSetup(process.cwd());

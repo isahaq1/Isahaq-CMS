@@ -12,7 +12,6 @@ import type { PageBlock, NavItem, NavStyle, Navigation } from '@group-cms/shared
 export default function PreviewPage() {
   const params = useParams();
   const siteId = params.siteId as string;
-  const basePath = `/preview/${siteId}`;
 
   const [page, setPage] = useState<{ blocks: PageBlock[]; title: string } | null>(null);
   const [headerNav, setHeaderNav] = useState<NavItem[]>([]);
@@ -23,8 +22,14 @@ export default function PreviewPage() {
   const [companyLogo, setCompanyLogo] = useState('');
   const [primaryColor, setPrimaryColor] = useState('#2563eb');
   const [loading, setLoading] = useState(true);
+  const [basePath, setBasePath] = useState(`/preview/${siteId}`);
 
   useEffect(() => {
+    // When served via custom domain the middleware sets _cms_domain cookie
+    const match = document.cookie.match(/(?:^|;\s*)_cms_domain=([^;]+)/);
+    const bp = match && match[1] === siteId ? '' : `/preview/${siteId}`;
+    setBasePath(bp);
+
     api.getPublicHomePage(siteId)
       .then((data) => {
         setPage({ blocks: data.blocks as PageBlock[], title: data.title });
@@ -37,14 +42,13 @@ export default function PreviewPage() {
         const header = navigations.find((n) => n.position === 'header');
         const footer = navigations.find((n) => n.position === 'footer');
         if (header) {
-          setHeaderNav(resolveNavItems(header.items as NavItem[], basePath));
+          setHeaderNav(resolveNavItems(header.items as NavItem[], bp));
           setHeaderSettings((header.settings as NavStyle) ?? {});
         }
         if (footer) {
-          setFooterNav(resolveNavItems(footer.items as NavItem[], basePath));
+          setFooterNav(resolveNavItems(footer.items as NavItem[], bp));
           setFooterSettings((footer.settings as NavStyle) ?? {});
         }
-
       })
       .catch(console.error)
       .finally(() => setLoading(false));

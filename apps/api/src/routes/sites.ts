@@ -11,7 +11,7 @@ const router = Router();
 const siteSchema = z.object({
   companyId: z.string().uuid(),
   name: z.string().min(2),
-  domain: z.string().optional(),
+  domain: z.string().nullable().optional(),
   isPublished: z.boolean().optional(),
   settings: z.record(z.unknown()).optional(),
 });

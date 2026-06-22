@@ -1,38 +1,83 @@
 # create-group-cms
 
-Scaffold a full-stack multi-site CMS in one command.
+[![npm version](https://img.shields.io/npm/v/create-group-cms?color=blue)](https://www.npmjs.com/package/create-group-cms)
+[![node](https://img.shields.io/node/v/create-group-cms)](https://nodejs.org)
+[![license](https://img.shields.io/npm/l/create-group-cms)](LICENSE)
 
-## Usage
+Scaffold a production-ready **multi-site CMS** in one command — Next.js 15, Express API, PostgreSQL or MySQL, Prisma ORM, Tailwind CSS.
+
+---
+
+## Quick Start
 
 ```bash
 npx create-group-cms my-project
+cd my-project
+npm run dev
 ```
 
-The CLI will:
-1. Clone the project template
-2. Prompt for your PostgreSQL database credentials
-3. Write a `.env` file with all required environment variables
-4. Install dependencies
-5. Run database migrations and seed data
+The CLI will guide you through:
+
+1. Choosing your database type (PostgreSQL or MySQL)
+2. Entering database credentials
+3. Testing the connection
+4. Writing a `.env` file
+5. Installing all dependencies
+6. Running database migrations and seed
+
+---
 
 ## Commands
 
 | Command | Description |
 |---|---|
-| `npx create-group-cms [name]` | Create a new project |
-| `npx create-group-cms setup` | Configure `.env` in an existing install |
+| `npx create-group-cms [name]` | Create a new project from scratch |
+| `npx create-group-cms setup` | Reconfigure `.env` in an existing install |
 | `npx create-group-cms migrate` | Run Prisma migrations only |
+
+---
+
+## Features
+
+- **Multi-site** — manage multiple websites under one CMS
+- **Page builder** — drag-and-drop block editor
+- **Custom domains** — map any domain to a site
+- **Navigation editor** — header & footer menus with visibility controls
+- **Media manager** — upload and manage images
+- **Role-based access** — Super Admin, Group Admin, Company Admin, Editor
+- **Multi-language** — built-in language support
+- **JWT auth** — secure token-based authentication
+
+---
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | Next.js 15 (App Router) |
+| Backend | Express + TypeScript |
+| Database | PostgreSQL or MySQL via Prisma ORM |
+| Auth | JWT |
+| UI | Tailwind CSS |
+| Package manager | npm / pnpm / yarn |
+
+---
 
 ## Requirements
 
 - Node.js 20+
 - Git
-- A running PostgreSQL database (v14+)
+- A running PostgreSQL (v14+) or MySQL (v8+) database
 
-## What gets written to `.env`
+---
+
+## Environment Variables
+
+The setup wizard writes these to `.env` automatically:
 
 ```env
 DATABASE_URL="postgresql://user:pass@host:5432/dbname"
+DB_TYPE=postgresql
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=group_cms
@@ -46,10 +91,27 @@ UPLOAD_DIR=./uploads
 MAX_FILE_SIZE=10485760
 ```
 
-## Stack
+---
 
-- **Frontend**: Next.js 15 (App Router)
-- **Backend**: Express + TypeScript
-- **Database**: PostgreSQL via Prisma ORM
-- **Auth**: JWT
-- **UI**: Tailwind CSS
+## Development
+
+After scaffolding, start the dev server:
+
+```bash
+npm run dev
+# API → http://localhost:4000
+# Web → http://localhost:3000
+```
+
+---
+
+## Author
+
+**Isahaq** — [hmisahaq01@gmail.com](mailto:hmisahaq01@gmail.com)  
+GitHub: [@isahaq1](https://github.com/isahaq1)
+
+---
+
+## License
+
+MIT

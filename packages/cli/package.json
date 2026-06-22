@@ -1,12 +1,37 @@
 {
   "name": "create-group-cms",
-  "version": "1.0.0",
-  "description": "Scaffold a full-stack Group CMS project (Next.js + Express + PostgreSQL)",
-  "keywords": ["cms", "nextjs", "postgresql", "multi-site", "page-builder"],
-  "homepage": "https://github.com/your-org/group-cms#readme",
+  "version": "1.0.6",
+  "description": "Scaffold a full-stack multi-site CMS — Next.js 15, Express, PostgreSQL or MySQL, Prisma, Tailwind CSS",
+  "keywords": [
+    "cms",
+    "create",
+    "scaffold",
+    "boilerplate",
+    "nextjs",
+    "next",
+    "express",
+    "postgresql",
+    "mysql",
+    "prisma",
+    "tailwind",
+    "multi-site",
+    "page-builder",
+    "full-stack",
+    "typescript"
+  ],
+  "author": {
+    "name": "Isahaq",
+    "email": "hmisahaq01@gmail.com",
+    "url": "https://github.com/isahaq1"
+  },
+  "homepage": "https://github.com/isahaq1/Isahaq-CMS#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/group-cms.git"
+    "url": "git+https://github.com/isahaq1/Isahaq-CMS.git"
+  },
+  "bugs": {
+    "url": "https://github.com/isahaq1/Isahaq-CMS/issues",
+    "email": "hmisahaq01@gmail.com"
   },
   "license": "MIT",
   "type": "module",
@@ -14,11 +39,13 @@
     "node": ">=20.0.0"
   },
   "bin": {
-    "create-group-cms": "./bin/create-group-cms.js"
+    "create-group-cms": "bin/create-group-cms.js"
   },
   "files": [
     "bin/",
-    "src/"
+    "src/",
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "lint": "node --check src/**/*.js"
@@ -27,6 +54,7 @@
     "@clack/prompts": "^0.9.1",
     "chalk": "^5.3.0",
     "execa": "^8.0.1",
+    "mysql2": "^3.22.5",
     "ora": "^8.1.1",
     "pg": "^8.13.1",
     "picocolors": "^1.1.1"

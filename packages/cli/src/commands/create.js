@@ -8,7 +8,7 @@ import fs from 'fs';
 import { runSetup } from './setup.js';
 import { runMigrate } from './migrate.js';
 
-const REPO_URL = 'https://github.com/your-org/group-cms.git';
+const REPO_URL = 'https://github.com/isahaq1/Isahaq-CMS.git';
 
 export async function runCreate(nameArg) {
   // ── Project name ─────────────────────────────────────────────────────────────

@@ -18,7 +18,6 @@ export default function PreviewSlugPage() {
   const params = useParams();
   const siteId = params.siteId as string;
   const slug = params.slug as string;
-  const basePath = `/preview/${siteId}`;
 
   const [page, setPage] = useState<{
     blocks: PageBlock[];
@@ -33,8 +32,14 @@ export default function PreviewSlugPage() {
   const [companyLogo, setCompanyLogo] = useState("");
   const [primaryColor, setPrimaryColor] = useState("#2563eb");
   const [loading, setLoading] = useState(true);
+  const [basePath, setBasePath] = useState(`/preview/${siteId}`);
 
   useEffect(() => {
+    // When served via custom domain the middleware sets _cms_domain cookie
+    const match = document.cookie.match(/(?:^|;\s*)_cms_domain=([^;]+)/);
+    const bp = match && match[1] === siteId ? "" : `/preview/${siteId}`;
+    setBasePath(bp);
+
     api
       .getPublicPage(siteId, slug)
       .then((data) => {
@@ -50,14 +55,13 @@ export default function PreviewSlugPage() {
         const header = navigations.find((n) => n.position === "header");
         const footer = navigations.find((n) => n.position === "footer");
         if (header) {
-          setHeaderNav(resolveNavItems(header.items as NavItem[], basePath));
+          setHeaderNav(resolveNavItems(header.items as NavItem[], bp));
           setHeaderSettings((header.settings as NavStyle) ?? {});
         }
         if (footer) {
-          setFooterNav(resolveNavItems(footer.items as NavItem[], basePath));
+          setFooterNav(resolveNavItems(footer.items as NavItem[], bp));
           setFooterSettings((footer.settings as NavStyle) ?? {});
         }
-
       })
       .catch((err) => {
         console.error(err);
