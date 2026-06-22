@@ -42,8 +42,15 @@ const IMAGE_URL_KEYS = new Set(['src', 'backgroundImage']);
 type Tab = 'content' | 'style' | 'layout' | 'advanced';
 type GalleryImage = { src: string; alt: string };
 type Slide = { src: string; alt: string; title: string; subtitle: string; link: string };
-type FeatureItem = { icon: string; title: string; description: string };
-type TabItem = { label: string; content: string };
+type FeatureItem   = { icon: string; title: string; description: string };
+type TabItem       = { label: string; content: string };
+type TestimonialItem = { name: string; role: string; company: string; text: string; avatar: string };
+type FaqItem       = { question: string; answer: string };
+type PricingPlan   = { name: string; price: string; period: string; description: string; features: string[]; highlighted: boolean; ctaText: string; ctaLink: string };
+type TeamMember    = { name: string; role: string; image: string; bio: string };
+type StatItem      = { value: string; label: string; prefix: string; suffix: string };
+type LogoItem      = { src: string; alt: string; href: string };
+type ColumnChild   = { html: string };
 
 const FEATURE_ICONS = [
   'Star', 'Zap', 'Shield', 'Heart', 'Check', 'Globe', 'Settings', 'Lock',
@@ -251,6 +258,343 @@ function TabsEditor({
   );
 }
 
+// ── FAQ Editor ────────────────────────────────────────────────────────────────
+
+function FaqEditor({ items, onChange }: { items: FaqItem[]; onChange: (next: FaqItem[]) => void }) {
+  const [open, setOpen] = useState<number | null>(0);
+  const upd = (i: number, f: keyof FaqItem, v: string) =>
+    onChange(items.map((it, idx) => idx === i ? { ...it, [f]: v } : it));
+  const add = () => { onChange([...items, { question: 'New Question', answer: '' }]); setOpen(items.length); };
+  const del = (i: number) => { onChange(items.filter((_, idx) => idx !== i)); setOpen(null); };
+  return (
+    <div className="space-y-2">
+      <label className="label">FAQ Items</label>
+      {items.map((item, i) => (
+        <div key={i} className="border rounded-lg overflow-hidden">
+          <div className="flex items-center gap-1 bg-gray-50 px-2 py-1.5">
+            <button type="button" className="flex-1 text-left text-xs font-medium px-1 truncate" onClick={() => setOpen(open === i ? null : i)}>
+              {open === i ? '▾' : '▸'} {item.question || `Question ${i + 1}`}
+            </button>
+            <button type="button" className="text-red-400 hover:text-red-600 p-1 rounded" onClick={() => del(i)}><X className="w-3.5 h-3.5" /></button>
+          </div>
+          {open === i && (
+            <div className="p-3 space-y-2 border-t">
+              <div className="space-y-1">
+                <label className="label text-xs">Question</label>
+                <input className="input text-sm" value={item.question} onChange={(e) => upd(i, 'question', e.target.value)} placeholder="Question text" />
+              </div>
+              <div className="space-y-1">
+                <label className="label text-xs">Answer</label>
+                <textarea className="input text-sm min-h-[80px] resize-y" value={item.answer} onChange={(e) => upd(i, 'answer', e.target.value)} placeholder="Answer text" />
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+      <button type="button" className="btn-secondary w-full btn-sm" onClick={add}><Plus className="w-4 h-4" /> Add FAQ</button>
+    </div>
+  );
+}
+
+// ── Stats Editor ──────────────────────────────────────────────────────────────
+
+function StatsEditor({ items, onChange }: { items: StatItem[]; onChange: (next: StatItem[]) => void }) {
+  const upd = (i: number, f: keyof StatItem, v: string) =>
+    onChange(items.map((it, idx) => idx === i ? { ...it, [f]: v } : it));
+  const add = () => onChange([...items, { value: '0', label: 'Stat', prefix: '', suffix: '' }]);
+  const del = (i: number) => onChange(items.filter((_, idx) => idx !== i));
+  return (
+    <div className="space-y-2">
+      <label className="label">Stats</label>
+      {items.map((item, i) => (
+        <div key={i} className="border rounded-lg p-3 space-y-2 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">Stat {i + 1}</span>
+            <button type="button" className="text-red-400 hover:text-red-600 p-1 rounded" onClick={() => del(i)}><X className="w-3.5 h-3.5" /></button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="label text-xs">Value</label>
+              <input className="input text-sm font-bold" value={item.value} onChange={(e) => upd(i, 'value', e.target.value)} placeholder="100" />
+            </div>
+            <div className="space-y-1">
+              <label className="label text-xs">Label</label>
+              <input className="input text-sm" value={item.label} onChange={(e) => upd(i, 'label', e.target.value)} placeholder="Users" />
+            </div>
+            <div className="space-y-1">
+              <label className="label text-xs">Prefix</label>
+              <input className="input text-sm" value={item.prefix} onChange={(e) => upd(i, 'prefix', e.target.value)} placeholder="$" />
+            </div>
+            <div className="space-y-1">
+              <label className="label text-xs">Suffix</label>
+              <input className="input text-sm" value={item.suffix} onChange={(e) => upd(i, 'suffix', e.target.value)} placeholder="+" />
+            </div>
+          </div>
+        </div>
+      ))}
+      <button type="button" className="btn-secondary w-full btn-sm" onClick={add}><Plus className="w-4 h-4" /> Add Stat</button>
+    </div>
+  );
+}
+
+// ── Testimonials Editor ───────────────────────────────────────────────────────
+
+function TestimonialsEditor({ items, onChange }: { items: TestimonialItem[]; onChange: (next: TestimonialItem[]) => void }) {
+  const [open, setOpen] = useState<number | null>(0);
+  const upd = (i: number, f: keyof TestimonialItem, v: string) =>
+    onChange(items.map((it, idx) => idx === i ? { ...it, [f]: v } : it));
+  const add = () => { onChange([...items, { name: 'New Person', role: '', company: '', text: '', avatar: '' }]); setOpen(items.length); };
+  const del = (i: number) => { onChange(items.filter((_, idx) => idx !== i)); setOpen(null); };
+  return (
+    <div className="space-y-2">
+      <label className="label">Testimonials</label>
+      {items.map((item, i) => (
+        <div key={i} className="border rounded-lg overflow-hidden">
+          <div className="flex items-center gap-1 bg-gray-50 px-2 py-1.5">
+            <button type="button" className="flex-1 text-left text-xs font-medium px-1 truncate" onClick={() => setOpen(open === i ? null : i)}>
+              {open === i ? '▾' : '▸'} {item.name || `Person ${i + 1}`}
+            </button>
+            <button type="button" className="text-red-400 hover:text-red-600 p-1 rounded" onClick={() => del(i)}><X className="w-3.5 h-3.5" /></button>
+          </div>
+          {open === i && (
+            <div className="p-3 space-y-2 border-t">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="label text-xs">Name</label>
+                  <input className="input text-sm" value={item.name} onChange={(e) => upd(i, 'name', e.target.value)} placeholder="John Doe" />
+                </div>
+                <div className="space-y-1">
+                  <label className="label text-xs">Role</label>
+                  <input className="input text-sm" value={item.role} onChange={(e) => upd(i, 'role', e.target.value)} placeholder="CEO" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="label text-xs">Company</label>
+                <input className="input text-sm" value={item.company} onChange={(e) => upd(i, 'company', e.target.value)} placeholder="Acme Corp" />
+              </div>
+              <div className="space-y-1">
+                <label className="label text-xs">Quote</label>
+                <textarea className="input text-sm min-h-[72px] resize-y" value={item.text} onChange={(e) => upd(i, 'text', e.target.value)} placeholder="What they said…" />
+              </div>
+              <div className="space-y-1">
+                <label className="label text-xs">Avatar URL</label>
+                <input className="input text-sm" value={item.avatar} onChange={(e) => upd(i, 'avatar', e.target.value)} placeholder="https://…" />
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+      <button type="button" className="btn-secondary w-full btn-sm" onClick={add}><Plus className="w-4 h-4" /> Add Testimonial</button>
+    </div>
+  );
+}
+
+// ── Team Editor ───────────────────────────────────────────────────────────────
+
+function TeamEditor({ members, onChange }: { members: TeamMember[]; onChange: (next: TeamMember[]) => void }) {
+  const [open, setOpen] = useState<number | null>(0);
+  const upd = (i: number, f: keyof TeamMember, v: string) =>
+    onChange(members.map((m, idx) => idx === i ? { ...m, [f]: v } : m));
+  const add = () => { onChange([...members, { name: 'New Member', role: '', image: '', bio: '' }]); setOpen(members.length); };
+  const del = (i: number) => { onChange(members.filter((_, idx) => idx !== i)); setOpen(null); };
+  return (
+    <div className="space-y-2">
+      <label className="label">Team Members</label>
+      {members.map((member, i) => (
+        <div key={i} className="border rounded-lg overflow-hidden">
+          <div className="flex items-center gap-1 bg-gray-50 px-2 py-1.5">
+            <button type="button" className="flex-1 text-left text-xs font-medium px-1 truncate" onClick={() => setOpen(open === i ? null : i)}>
+              {open === i ? '▾' : '▸'} {member.name || `Member ${i + 1}`}{member.role ? ` — ${member.role}` : ''}
+            </button>
+            <button type="button" className="text-red-400 hover:text-red-600 p-1 rounded" onClick={() => del(i)}><X className="w-3.5 h-3.5" /></button>
+          </div>
+          {open === i && (
+            <div className="p-3 space-y-2 border-t">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="label text-xs">Name</label>
+                  <input className="input text-sm" value={member.name} onChange={(e) => upd(i, 'name', e.target.value)} placeholder="Jane Smith" />
+                </div>
+                <div className="space-y-1">
+                  <label className="label text-xs">Role</label>
+                  <input className="input text-sm" value={member.role} onChange={(e) => upd(i, 'role', e.target.value)} placeholder="Director" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="label text-xs">Photo URL</label>
+                <input className="input text-sm" value={member.image} onChange={(e) => upd(i, 'image', e.target.value)} placeholder="https://…" />
+                {member.image && (
+                  <img src={member.image} alt={member.name} className="w-16 h-16 rounded-full object-cover mt-1"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                )}
+              </div>
+              <div className="space-y-1">
+                <label className="label text-xs">Bio</label>
+                <textarea className="input text-sm min-h-[60px] resize-y" value={member.bio} onChange={(e) => upd(i, 'bio', e.target.value)} placeholder="Short bio…" />
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+      <button type="button" className="btn-secondary w-full btn-sm" onClick={add}><Plus className="w-4 h-4" /> Add Member</button>
+    </div>
+  );
+}
+
+// ── Pricing Editor ────────────────────────────────────────────────────────────
+
+function PricingEditor({ plans, onChange }: { plans: PricingPlan[]; onChange: (next: PricingPlan[]) => void }) {
+  const [open, setOpen] = useState<number | null>(0);
+  const upd = (i: number, f: keyof PricingPlan, v: unknown) =>
+    onChange(plans.map((p, idx) => idx === i ? { ...p, [f]: v } : p));
+  const add = () => {
+    onChange([...plans, { name: 'New Plan', price: '0', period: 'mo', description: '', features: [], highlighted: false, ctaText: 'Get Started', ctaLink: '#' }]);
+    setOpen(plans.length);
+  };
+  const del = (i: number) => { onChange(plans.filter((_, idx) => idx !== i)); setOpen(null); };
+  return (
+    <div className="space-y-2">
+      <label className="label">Pricing Plans</label>
+      {plans.map((plan, i) => (
+        <div key={i} className="border rounded-lg overflow-hidden">
+          <div className="flex items-center gap-1 bg-gray-50 px-2 py-1.5">
+            <button type="button" className="flex-1 text-left text-xs font-medium px-1 truncate" onClick={() => setOpen(open === i ? null : i)}>
+              {open === i ? '▾' : '▸'} {plan.name || `Plan ${i + 1}`}{plan.price ? ` — ${plan.price}` : ''}{plan.highlighted ? ' ⭐' : ''}
+            </button>
+            <button type="button" className="text-red-400 hover:text-red-600 p-1 rounded" onClick={() => del(i)}><X className="w-3.5 h-3.5" /></button>
+          </div>
+          {open === i && (
+            <div className="p-3 space-y-2 border-t">
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1 col-span-1">
+                  <label className="label text-xs">Name</label>
+                  <input className="input text-sm" value={plan.name} onChange={(e) => upd(i, 'name', e.target.value)} placeholder="Starter" />
+                </div>
+                <div className="space-y-1">
+                  <label className="label text-xs">Price</label>
+                  <input className="input text-sm" value={plan.price} onChange={(e) => upd(i, 'price', e.target.value)} placeholder="9" />
+                </div>
+                <div className="space-y-1">
+                  <label className="label text-xs">Period</label>
+                  <input className="input text-sm" value={plan.period} onChange={(e) => upd(i, 'period', e.target.value)} placeholder="mo" />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="label text-xs">Description</label>
+                <input className="input text-sm" value={plan.description} onChange={(e) => upd(i, 'description', e.target.value)} placeholder="Short plan description" />
+              </div>
+              <div className="space-y-1">
+                <label className="label text-xs">Features <span className="font-normal text-muted-foreground">(one per line)</span></label>
+                <textarea className="input text-sm font-mono min-h-[80px] resize-y"
+                  value={(plan.features || []).join('\n')}
+                  onChange={(e) => upd(i, 'features', e.target.value.split('\n').filter((f) => f.trim()))}
+                  placeholder={"5 Projects\n10 GB Storage\nBasic Support"} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <label className="label text-xs">Button Text</label>
+                  <input className="input text-sm" value={plan.ctaText} onChange={(e) => upd(i, 'ctaText', e.target.value)} placeholder="Get Started" />
+                </div>
+                <div className="space-y-1">
+                  <label className="label text-xs">Button Link</label>
+                  <input className="input text-sm" value={plan.ctaLink} onChange={(e) => upd(i, 'ctaLink', e.target.value)} placeholder="#" />
+                </div>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={!!plan.highlighted} onChange={(e) => upd(i, 'highlighted', e.target.checked)} className="rounded" />
+                <span className="label text-xs">Mark as Most Popular</span>
+              </label>
+            </div>
+          )}
+        </div>
+      ))}
+      <button type="button" className="btn-secondary w-full btn-sm" onClick={add}><Plus className="w-4 h-4" /> Add Plan</button>
+    </div>
+  );
+}
+
+// ── Logo Bar Editor ───────────────────────────────────────────────────────────
+
+function LogoBarEditor({ logos, onChange }: { logos: LogoItem[]; onChange: (next: LogoItem[]) => void }) {
+  const upd = (i: number, f: keyof LogoItem, v: string) =>
+    onChange(logos.map((l, idx) => idx === i ? { ...l, [f]: v } : l));
+  const add = () => onChange([...logos, { src: '', alt: '', href: '' }]);
+  const del = (i: number) => onChange(logos.filter((_, idx) => idx !== i));
+  return (
+    <div className="space-y-2">
+      <label className="label">Logos</label>
+      {logos.map((logo, i) => (
+        <div key={i} className="border rounded-lg p-3 space-y-2 bg-gray-50">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              {logo.src && (
+                <img src={logo.src} alt={logo.alt} className="h-7 w-auto object-contain bg-white rounded p-0.5 shrink-0"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+              )}
+              <span className="text-xs font-medium text-muted-foreground truncate">{logo.alt || `Logo ${i + 1}`}</span>
+            </div>
+            <button type="button" className="text-red-400 hover:text-red-600 p-1 rounded shrink-0" onClick={() => del(i)}><X className="w-3.5 h-3.5" /></button>
+          </div>
+          <div className="space-y-1">
+            <label className="label text-xs">Image URL</label>
+            <input className="input text-sm" value={logo.src} onChange={(e) => upd(i, 'src', e.target.value)} placeholder="https://…" />
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <label className="label text-xs">Alt Text</label>
+              <input className="input text-sm" value={logo.alt} onChange={(e) => upd(i, 'alt', e.target.value)} placeholder="Company name" />
+            </div>
+            <div className="space-y-1">
+              <label className="label text-xs">Link (optional)</label>
+              <input className="input text-sm" value={logo.href} onChange={(e) => upd(i, 'href', e.target.value)} placeholder="https://…" />
+            </div>
+          </div>
+        </div>
+      ))}
+      <button type="button" className="btn-secondary w-full btn-sm" onClick={add}><Plus className="w-4 h-4" /> Add Logo</button>
+    </div>
+  );
+}
+
+// ── Columns Children Editor ───────────────────────────────────────────────────
+
+function ColumnsChildrenEditor({ children, onChange }: { children: ColumnChild[]; onChange: (next: ColumnChild[]) => void }) {
+  const [open, setOpen] = useState<number | null>(0);
+  const upd = (i: number, v: string) =>
+    onChange(children.map((c, idx) => idx === i ? { ...c, html: v } : c));
+  const add = () => { onChange([...children, { html: '<p>Column content here.</p>' }]); setOpen(children.length); };
+  const del = (i: number) => { onChange(children.filter((_, idx) => idx !== i)); setOpen(null); };
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="label">Column Content</label>
+        <span className="text-xs text-muted-foreground">{children.length} block{children.length !== 1 ? 's' : ''}</span>
+      </div>
+      <p className="text-xs text-muted-foreground">Set column count above. One HTML block per column.</p>
+      {children.map((child, i) => (
+        <div key={i} className="border rounded-lg overflow-hidden">
+          <div className="flex items-center gap-1 bg-gray-50 px-2 py-1.5">
+            <button type="button" className="flex-1 text-left text-xs font-medium px-1" onClick={() => setOpen(open === i ? null : i)}>
+              {open === i ? '▾' : '▸'} Column {i + 1}
+            </button>
+            <button type="button" className="text-red-400 hover:text-red-600 p-1 rounded" onClick={() => del(i)}><X className="w-3.5 h-3.5" /></button>
+          </div>
+          {open === i && (
+            <div className="p-3 border-t space-y-1">
+              <label className="label text-xs">HTML Content</label>
+              <textarea className="input text-xs font-mono min-h-[100px] resize-y"
+                placeholder="<p>Column content...</p>"
+                value={child.html || ''}
+                onChange={(e) => upd(i, e.target.value)} />
+            </div>
+          )}
+        </div>
+      ))}
+      <button type="button" className="btn-secondary w-full btn-sm" onClick={add}><Plus className="w-4 h-4" /> Add Column</button>
+    </div>
+  );
+}
+
 function getLangValue(value: unknown, lang: string): string {
   if (!value) return '';
   if (typeof value === 'string') return lang === 'en' ? value : '';
@@ -376,6 +720,48 @@ export function BlockProperties({ block, onChange, companyId, currentLang }: Blo
           tabs={(value as TabItem[]) || []}
           onChange={(next) => update(key, next)}
         />
+      );
+    }
+
+    if (key === 'items' && block.type === 'testimonials') {
+      return <TestimonialsEditor key={key} items={(value as TestimonialItem[]) || []} onChange={(next) => update(key, next)} />;
+    }
+
+    if (key === 'items' && block.type === 'faq') {
+      return <FaqEditor key={key} items={(value as FaqItem[]) || []} onChange={(next) => update(key, next)} />;
+    }
+
+    if (key === 'items' && block.type === 'stats') {
+      return <StatsEditor key={key} items={(value as StatItem[]) || []} onChange={(next) => update(key, next)} />;
+    }
+
+    if (key === 'plans') {
+      return <PricingEditor key={key} plans={(value as PricingPlan[]) || []} onChange={(next) => update(key, next)} />;
+    }
+
+    if (key === 'members') {
+      return <TeamEditor key={key} members={(value as TeamMember[]) || []} onChange={(next) => update(key, next)} />;
+    }
+
+    if (key === 'logos') {
+      return <LogoBarEditor key={key} logos={(value as LogoItem[]) || []} onChange={(next) => update(key, next)} />;
+    }
+
+    if (key === 'children' && block.type === 'columns') {
+      return <ColumnsChildrenEditor key={key} children={(value as ColumnChild[]) || []} onChange={(next) => update(key, next)} />;
+    }
+
+    if (key === 'gap' && block.type === 'columns') {
+      return (
+        <div key={key} className="space-y-1">
+          <label className="label">Column Gap</label>
+          <select className="input" value={String(value || 'md')} onChange={(e) => update(key, e.target.value)}>
+            <option value="sm">Small (16px)</option>
+            <option value="md">Medium (24px)</option>
+            <option value="lg">Large (32px)</option>
+            <option value="xl">X-Large (48px)</option>
+          </select>
+        </div>
       );
     }
 
