@@ -231,7 +231,7 @@ function CountdownBlock({ block, ap }: { block: PageBlock; ap: AppearanceResult 
         </div>
       )}
       {!!block.props.subtitle && (
-        <p className="mt-6 text-sm" style={ap.bodyStyle}>{String(block.props.subtitle)}</p>
+        <div className="mt-6 text-sm prose prose-sm max-w-none" style={ap.bodyStyle} dangerouslySetInnerHTML={{ __html: String(block.props.subtitle) }} />
       )}
     </section>
   );
@@ -267,10 +267,9 @@ function FaqBlock({ block, ap, lang }: { block: PageBlock; ap: AppearanceResult;
                 </span>
               </button>
               {isOpen && (
-                <div className="px-5 pb-5 text-sm leading-relaxed border-t"
-                  style={{ borderColor: ap.cardStyle.border ? undefined : '#f3f4f6', ...ap.bodyStyle }}>
-                  {resolveText(item.answer, lang)}
-                </div>
+                <div className="px-5 pb-5 text-sm leading-relaxed border-t prose prose-sm max-w-none"
+                  style={{ borderColor: ap.cardStyle.border ? undefined : '#f3f4f6', ...ap.bodyStyle }}
+                  dangerouslySetInnerHTML={{ __html: resolveText(item.answer, lang) }} />
               )}
             </div>
           );
@@ -504,7 +503,7 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
             style={{ textAlign: props.alignment === 'left' ? 'left' : 'center', ...ap.wrapOverride }}
           >
             <h1 className="text-5xl font-bold mb-4" style={ap.headingStyle}>{t(props.title)}</h1>
-            <p className="text-xl opacity-90 mb-8" style={ap.bodyStyle}>{t(props.subtitle)}</p>
+            <div className="text-xl opacity-90 mb-8 prose prose-invert prose-sm max-w-none" style={ap.bodyStyle} dangerouslySetInnerHTML={{ __html: t(props.subtitle) }} />
             {!!props.ctaText && renderHeroButton(ap, String(props.ctaLink), t(props.ctaText))}
           </div>
         </section>
@@ -620,7 +619,7 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
           <div className="p-12 text-center text-white"
             style={{ backgroundColor: ctaBg, borderRadius: ctaCardBr, boxShadow: ap.cardStyle.boxShadow }}>
             <h2 className="text-3xl font-bold mb-4" style={ap.headingStyle}>{t(props.title)}</h2>
-            <p className="text-lg opacity-90 mb-8" style={ap.bodyStyle}>{t(props.description)}</p>
+            <div className="text-lg opacity-90 mb-8 prose prose-invert prose-sm max-w-none" style={ap.bodyStyle} dangerouslySetInnerHTML={{ __html: t(props.description) }} />
             {renderButton(ap, String(props.buttonLink), t(props.buttonText))}
           </div>
         </section>
@@ -646,7 +645,7 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
                     <Icon className="w-7 h-7" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2" style={ap.headingStyle}>{resolveText(item.title, language)}</h3>
-                  <p style={{ color: ap.bodyStyle.color || '#4b5563', lineHeight: ap.bodyStyle.lineHeight }}>{resolveText(item.description, language)}</p>
+                  <div className="prose prose-sm max-w-none" style={{ color: ap.bodyStyle.color || '#4b5563', lineHeight: ap.bodyStyle.lineHeight }} dangerouslySetInnerHTML={{ __html: resolveText(item.description, language) }} />
                 </div>
               );
             })}
@@ -666,9 +665,7 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px,1fr))', gap }}>
             {items.map((item, i) => (
               <div key={i} style={cardStyle}>
-                <p className="italic mb-4" style={{ color: ap.bodyStyle.color || '#4b5563', lineHeight: ap.bodyStyle.lineHeight }}>
-                  &ldquo;{resolveText(item.text, language)}&rdquo;
-                </p>
+                <div className="italic mb-4 prose prose-sm max-w-none" style={{ color: ap.bodyStyle.color || '#4b5563', lineHeight: ap.bodyStyle.lineHeight }} dangerouslySetInnerHTML={{ __html: resolveText(item.text, language) }} />
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden shrink-0">
                     {item.avatar && <img src={item.avatar} alt={item.name} className="w-full h-full object-cover" />}
@@ -713,7 +710,7 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
       content = (
         <section className="max-w-2xl mx-auto px-6 py-12" style={ap.wrapOverride}>
           <h2 className="text-3xl font-bold text-center mb-2" style={ap.headingStyle}>{t(props.title)}</h2>
-          <p className="text-center mb-8" style={{ color: ap.bodyStyle.color || '#4b5563' }}>{t(props.description)}</p>
+          <div className="text-center mb-8 prose prose-sm max-w-none" style={{ color: ap.bodyStyle.color || '#4b5563' }} dangerouslySetInnerHTML={{ __html: t(props.description) }} />
           <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             <div className="grid grid-cols-2 gap-4">
               <input className="input" placeholder="First Name" />
@@ -827,7 +824,7 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
             <h2 className="text-3xl font-bold text-center mb-2" style={ap.headingStyle}>{resolveText(props.title, language)}</h2>
           )}
           {!!props.subtitle && (
-            <p className="text-center mb-10 text-sm" style={ap.bodyStyle}>{resolveText(props.subtitle, language)}</p>
+            <div className="text-center mb-10 text-sm prose prose-sm max-w-none" style={ap.bodyStyle} dangerouslySetInnerHTML={{ __html: resolveText(props.subtitle, language) }} />
           )}
           <div className={cn('grid gap-6', plans.length === 1 ? 'grid-cols-1 max-w-sm mx-auto' : plans.length === 2 ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-3')}>
             {plans.map((plan, i) => (
@@ -843,7 +840,7 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
                 <div style={ap.itemPadding} className="p-6 flex flex-col flex-1">
                   <h3 className="text-lg font-bold mb-1" style={ap.headingStyle}>{resolveText(plan.name, language)}</h3>
                   {!!plan.description && (
-                    <p className="text-xs mb-4" style={{ color: ap.bodyStyle.color || '#6b7280' }}>{resolveText(plan.description, language)}</p>
+                    <div className="text-xs mb-4 prose prose-sm max-w-none" style={{ color: ap.bodyStyle.color || '#6b7280' }} dangerouslySetInnerHTML={{ __html: resolveText(plan.description, language) }} />
                   )}
                   <div className="mb-6">
                     <span className="text-4xl font-extrabold" style={{ color: plan.highlighted ? ap.accent : ap.headingStyle.color }}>{resolveText(plan.price, language)}</span>
