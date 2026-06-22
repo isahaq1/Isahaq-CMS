@@ -952,19 +952,17 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
         </span>
       );
 
-      output = (
-        <section style={ap.sectionStyle}>
-          <div style={ap.containerStyle} className={cn('flex flex-col gap-2', alignClass)}>
-            {props.link ? (
-              <a href={String(props.link)} target={props.openInNewTab ? '_blank' : undefined} rel="noopener noreferrer">
-                {logoEl}
-              </a>
-            ) : logoEl}
-            {props.caption && (
-              <p className="text-sm" style={ap.bodyStyle}>{t(props.caption)}</p>
-            )}
-          </div>
-        </section>
+      content = (
+        <div style={ap.wrapOverride} className={cn('flex flex-col gap-2', alignClass)}>
+          {props.link ? (
+            <a href={String(props.link)} target={props.openInNewTab ? '_blank' : undefined} rel="noopener noreferrer">
+              {logoEl}
+            </a>
+          ) : logoEl}
+          {!!props.caption && (
+            <p className="text-sm" style={ap.bodyStyle}>{String(props.caption)}</p>
+          )}
+        </div>
       );
       break;
     }
