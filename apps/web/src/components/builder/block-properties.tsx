@@ -43,6 +43,7 @@ type Tab = 'content' | 'style' | 'layout' | 'advanced';
 type GalleryImage = { src: string; alt: string };
 type Slide = { src: string; alt: string; title: string; subtitle: string; link: string };
 type FeatureItem = { icon: string; title: string; description: string };
+type TabItem = { label: string; content: string };
 
 const FEATURE_ICONS = [
   'Star', 'Zap', 'Shield', 'Heart', 'Check', 'Globe', 'Settings', 'Lock',
@@ -127,6 +128,124 @@ function FeaturesItemsEditor({
         onClick={add}
       >
         <Plus className="w-4 h-4" /> Add Item
+      </button>
+    </div>
+  );
+}
+
+function TabsEditor({
+  tabs,
+  onChange,
+}: {
+  tabs: TabItem[];
+  onChange: (next: TabItem[]) => void;
+}) {
+  const [openIndex, setOpenIndex] = useState<number | null>(tabs.length > 0 ? 0 : null);
+
+  const updateTab = (i: number, field: keyof TabItem, value: string) => {
+    const next = tabs.map((tab, idx) => idx === i ? { ...tab, [field]: value } : tab);
+    onChange(next);
+  };
+
+  const removeTab = (i: number) => {
+    const next = tabs.filter((_, idx) => idx !== i);
+    onChange(next);
+    setOpenIndex(next.length > 0 ? Math.max(0, i - 1) : null);
+  };
+
+  const addTab = () => {
+    const next = [...tabs, { label: `Tab ${tabs.length + 1}`, content: '<p>Tab content goes here.</p>' }];
+    onChange(next);
+    setOpenIndex(next.length - 1);
+  };
+
+  const moveTab = (from: number, to: number) => {
+    const next = [...tabs];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    onChange(next);
+    setOpenIndex(to);
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="label">Tabs</label>
+
+      {tabs.map((tab, i) => (
+        <div key={i} className="border rounded-lg overflow-hidden">
+          {/* Tab header row */}
+          <div className="flex items-center gap-1 bg-gray-50 px-2 py-1.5 border-b">
+            <div className="flex gap-0.5">
+              <button
+                type="button"
+                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 rounded"
+                onClick={() => moveTab(i, i - 1)}
+                disabled={i === 0}
+                title="Move left"
+              >
+                ◀
+              </button>
+              <button
+                type="button"
+                className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 rounded"
+                onClick={() => moveTab(i, i + 1)}
+                disabled={i === tabs.length - 1}
+                title="Move right"
+              >
+                ▶
+              </button>
+            </div>
+            <button
+              type="button"
+              className="flex-1 text-left text-xs font-medium px-1 truncate"
+              onClick={() => setOpenIndex(openIndex === i ? null : i)}
+            >
+              {tab.label || `Tab ${i + 1}`}
+            </button>
+            <button
+              type="button"
+              className="text-red-400 hover:text-red-600 p-1 rounded shrink-0"
+              onClick={() => removeTab(i)}
+              title="Remove tab"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Expanded fields */}
+          {openIndex === i && (
+            <div className="p-3 space-y-3">
+              <div className="space-y-1">
+                <label className="label text-xs">Tab Label</label>
+                <input
+                  className="input text-sm"
+                  placeholder="Tab label"
+                  value={tab.label}
+                  onChange={(e) => updateTab(i, 'label', e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="label text-xs">Content (HTML)</label>
+                <textarea
+                  className="input text-xs font-mono min-h-[120px] resize-y"
+                  placeholder="<p>Tab content...</p>"
+                  value={tab.content}
+                  onChange={(e) => updateTab(i, 'content', e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Supports HTML tags: &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;a&gt;, etc.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      ))}
+
+      <button
+        type="button"
+        className="btn-secondary w-full btn-sm"
+        onClick={addTab}
+      >
+        <Plus className="w-4 h-4" /> Add Tab
       </button>
     </div>
   );
@@ -245,6 +364,16 @@ export function BlockProperties({ block, onChange, companyId, currentLang }: Blo
         <FeaturesItemsEditor
           key={key}
           items={(value as FeatureItem[]) || []}
+          onChange={(next) => update(key, next)}
+        />
+      );
+    }
+
+    if (key === 'tabs') {
+      return (
+        <TabsEditor
+          key={key}
+          tabs={(value as TabItem[]) || []}
           onChange={(next) => update(key, next)}
         />
       );
