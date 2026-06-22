@@ -4,8 +4,9 @@ import pc from 'picocolors';
 import path from 'path';
 import fs from 'fs';
 import { readEnv } from '../utils/env.js';
+import { ensureDatabase, parseDbUrl } from '../utils/db.js';
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 function step(n, label) {
   return `${pc.dim(`[${n}/${TOTAL_STEPS}]`)} ${label}`;
@@ -52,9 +53,27 @@ export async function runMigrate(projectDir) {
   const execEnv = { ...process.env, DATABASE_URL: env.DATABASE_URL };
   const s = spinner();
 
-  // ── [1/3] Generate Prisma client ─────────────────────────────────────────────
+  // ── [1/4] Ensure database exists ─────────────────────────────────────────────
   let t = Date.now();
-  s.start(step(1, 'Generating Prisma client…'));
+  const parsed = parseDbUrl(env.DATABASE_URL);
+  if (parsed) {
+    s.start(step(1, 'Ensuring database exists…'));
+    const dbResult = await ensureDatabase({ dbType, ...parsed });
+    if (dbResult.ok) {
+      const msg = dbResult.created
+        ? `✓ Database ${pc.cyan(parsed.database)} created`
+        : `✓ Database ${pc.cyan(parsed.database)} already exists`;
+      s.stop(pc.green(msg) + ` ${elapsed(t)}`);
+    } else {
+      s.stop(pc.yellow(`⚠ Could not ensure database: ${dbResult.error} — proceeding anyway`));
+    }
+  } else {
+    console.log(`  ${pc.dim(`[1/${TOTAL_STEPS}]`)} ${pc.dim('Skipping DB check (could not parse DATABASE_URL)')}`);
+  }
+
+  // ── [2/4] Generate Prisma client ─────────────────────────────────────────────
+  t = Date.now();
+  s.start(step(2, 'Generating Prisma client…'));
   try {
     await execa(prismaBin, ['generate', '--schema', schemaPath], {
       cwd: projectDir,
@@ -67,10 +86,10 @@ export async function runMigrate(projectDir) {
     process.exit(1);
   }
 
-  // ── [2/3] Apply schema ───────────────────────────────────────────────────────
+  // ── [3/4] Apply schema ───────────────────────────────────────────────────────
   t = Date.now();
   if (provider === 'mysql') {
-    s.start(step(2, `Pushing schema to ${dbLabel} database…`));
+    s.start(step(3, `Pushing schema to ${dbLabel} database…`));
     try {
       await execa(
         prismaBin,
@@ -84,7 +103,7 @@ export async function runMigrate(projectDir) {
       process.exit(1);
     }
   } else {
-    s.start(step(2, `Running migrations on ${dbLabel} database…`));
+    s.start(step(3, `Running migrations on ${dbLabel} database…`));
     try {
       await execa(
         prismaBin,
@@ -99,12 +118,12 @@ export async function runMigrate(projectDir) {
     }
   }
 
-  // ── [3/3] Seed ────────────────────────────────────────────────────────────────
+  // ── [4/4] Seed ────────────────────────────────────────────────────────────────
   const seedFile = path.join(apiDir, 'prisma', 'seed.ts');
   if (fs.existsSync(seedFile)) {
     t = Date.now();
     const tsxBin = path.join(projectDir, 'node_modules', '.bin', 'tsx');
-    s.start(step(3, 'Running seed…'));
+    s.start(step(4, 'Running seed…'));
     try {
       await execa(tsxBin, [seedFile], { cwd: projectDir, env: execEnv });
       s.stop(pc.green('✓ Database seeded') + ` ${elapsed(t)}`);

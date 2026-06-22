@@ -2,7 +2,7 @@ import {
   text, password, confirm, select, spinner, note, isCancel, cancel,
 } from '@clack/prompts';
 import pc from 'picocolors';
-import { testConnection, buildUrl } from '../utils/db.js';
+import { ensureDatabase, buildUrl } from '../utils/db.js';
 import { readEnv, writeEnv } from '../utils/env.js';
 
 export async function runSetup(projectDir) {
@@ -111,10 +111,21 @@ export async function runSetup(projectDir) {
 
   if (shouldTest) {
     const s = spinner();
-    s.start(`Testing ${dbLabel} connection…`);
-    const result = await testConnection(url);
+    const dbName = database || 'group_cms';
+    s.start(`Connecting to ${dbLabel} and checking database…`);
+    const result = await ensureDatabase({
+      dbType,
+      host: host || 'localhost',
+      port: port || defaultPort,
+      database: dbName,
+      user: user || defaultUser,
+      password: pwd,
+    });
     if (result.ok) {
-      s.stop(pc.green(`✓ Connected to ${isMySQL ? 'MySQL' : 'PostgreSQL'} successfully`));
+      const msg = result.created
+        ? `✓ Database ${pc.cyan(dbName)} created successfully`
+        : `✓ Connected — database ${pc.cyan(dbName)} already exists`;
+      s.stop(pc.green(msg));
     } else {
       s.stop(pc.red('✗ Connection failed: ' + result.error));
       const force = await confirm({

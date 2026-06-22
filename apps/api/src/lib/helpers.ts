@@ -10,18 +10,28 @@ export async function logActivity(
   entityName: string,
   metadata?: Record<string, unknown>
 ) {
+  const base = {
+    action,
+    entityType,
+    entityId,
+    entityName,
+    ...(metadata ? { metadata: metadata as Prisma.InputJsonValue } : {}),
+  };
   try {
     await prisma.activityLog.create({
-      data: {
-        userId: userId ?? null,
-        action,
-        entityType,
-        entityId,
-        entityName,
-        metadata: metadata ? (metadata as Prisma.InputJsonValue) : undefined,
-      },
+      data: userId ? { ...base, userId } : base,
     });
-  } catch {
+  } catch (err) {
+    // P2003 = FK constraint failed (e.g. stale JWT userId after MySQL db reset).
+    // Retry without userId so the log entry still gets recorded.
+    if ((err as { code?: string })?.code === 'P2003') {
+      try {
+        await prisma.activityLog.create({ data: base });
+      } catch {
+        // Non-fatal
+      }
+      return;
+    }
     // Non-fatal — activity logging should never break the actual operation
   }
 }

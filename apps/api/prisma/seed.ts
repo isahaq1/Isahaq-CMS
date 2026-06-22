@@ -21,52 +21,52 @@ async function main() {
   });
 
   const group = await prisma.companyGroup.upsert({
-    where: { slug: 'acme-holdings' },
+    where: { slug: 'isahaq-cms' },
     update: {},
     create: {
-      name: 'ACME Holdings',
-      slug: 'acme-holdings',
+      name: 'IsahaqCMS Group',
+      slug: 'isahaq-cms',
       description: 'A diversified group of companies across multiple industries',
     },
   });
 
   const companies = await Promise.all([
     prisma.company.upsert({
-      where: { groupId_slug: { groupId: group.id, slug: 'acme-tech' } },
+      where: { groupId_slug: { groupId: group.id, slug: 'isahaq-cms-tech' } },
       update: {},
       create: {
         groupId: group.id,
-        name: 'ACME Tech Solutions',
-        slug: 'acme-tech',
+        name: 'IsahaqCMS Tech',
+        slug: 'isahaq-cms-tech',
         description: 'Leading technology solutions provider',
-        email: 'info@acmetech.com',
+        email: 'info@isahaqcms.com',
         phone: '+1 (555) 123-4567',
         address: '123 Innovation Drive, San Francisco, CA',
         theme: DEFAULT_THEME,
       },
     }),
     prisma.company.upsert({
-      where: { groupId_slug: { groupId: group.id, slug: 'acme-manufacturing' } },
+      where: { groupId_slug: { groupId: group.id, slug: 'isahaq-cms-manufacturing' } },
       update: {},
       create: {
         groupId: group.id,
-        name: 'ACME Manufacturing',
-        slug: 'acme-manufacturing',
+        name: 'IsahaqCMS Manufacturing',
+        slug: 'isahaq-cms-manufacturing',
         description: 'Precision manufacturing and industrial solutions',
-        email: 'contact@acmemfg.com',
+        email: 'contact@isahaqcms.com',
         phone: '+1 (555) 987-6543',
         theme: { ...DEFAULT_THEME, primaryColor: '#059669', secondaryColor: '#047857' },
       },
     }),
     prisma.company.upsert({
-      where: { groupId_slug: { groupId: group.id, slug: 'acme-consulting' } },
+      where: { groupId_slug: { groupId: group.id, slug: 'isahaq-cms-consulting' } },
       update: {},
       create: {
         groupId: group.id,
-        name: 'ACME Consulting',
-        slug: 'acme-consulting',
+        name: 'IsahaqCMS Consulting',
+        slug: 'isahaq-cms-consulting',
         description: 'Strategic business consulting services',
-        email: 'hello@acmeconsulting.com',
+        email: 'hello@isahaqcms.com',
         theme: { ...DEFAULT_THEME, primaryColor: '#7c3aed', secondaryColor: '#6d28d9' },
       },
     }),
