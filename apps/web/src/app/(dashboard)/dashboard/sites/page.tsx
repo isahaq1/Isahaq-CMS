@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Plus, Trash2, ExternalLink, Globe, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Plus, Pencil, Trash2, ExternalLink, Globe, X, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { DashboardShell, PageHeader, LoadingSpinner, EmptyState } from '@/components/layout/sidebar';
@@ -13,6 +13,35 @@ export default function SitesPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ companyId: '', name: '', domain: '' });
+
+  // Inline name editing
+  const [editingNameId, setEditingNameId] = useState<string | null>(null);
+  const [editingNameValue, setEditingNameValue] = useState('');
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const startNameEdit = (site: Site) => {
+    setEditingNameId(site.id);
+    setEditingNameValue(site.name);
+    setTimeout(() => nameInputRef.current?.select(), 0);
+  };
+
+  const saveNameEdit = async (siteId: string) => {
+    const name = editingNameValue.trim();
+    if (!name || name.length < 2) { setEditingNameId(null); return; }
+    try {
+      await api.updateSite(siteId, { name });
+      setSites((prev) => prev.map((s) => s.id === siteId ? { ...s, name } : s));
+    } catch {
+      // revert on error — load() will restore original
+    } finally {
+      setEditingNameId(null);
+    }
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent, siteId: string) => {
+    if (e.key === 'Enter') saveNameEdit(siteId);
+    if (e.key === 'Escape') setEditingNameId(null);
+  };
 
   // Domain edit modal
   const [editSite, setEditSite] = useState<Site | null>(null);
@@ -123,7 +152,28 @@ export default function SitesPage() {
                   }}><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
-              <h3 className="font-semibold text-lg">{site.name}</h3>
+              {editingNameId === site.id ? (
+                <input
+                  ref={nameInputRef}
+                  className="input font-semibold text-lg w-full mb-1"
+                  value={editingNameValue}
+                  onChange={(e) => setEditingNameValue(e.target.value)}
+                  onBlur={() => saveNameEdit(site.id)}
+                  onKeyDown={(e) => handleNameKeyDown(e, site.id)}
+                  autoFocus
+                />
+              ) : (
+                <div className="flex items-center gap-2 group">
+                  <h3 className="font-semibold text-lg">{site.name}</h3>
+                  <button
+                    className="opacity-0 group-hover:opacity-100 transition-opacity btn-ghost btn-sm p-1"
+                    onClick={() => startNameEdit(site)}
+                    title="Edit name"
+                  >
+                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                </div>
+              )}
               <p className="text-sm text-muted-foreground">{(site as Site & { company?: Company }).company?.name}</p>
               {site.domain ? (
                 <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
