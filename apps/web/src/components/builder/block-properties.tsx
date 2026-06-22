@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Image as ImageIcon, Plus, X } from 'lucide-react';
 import type { PageBlock } from '@group-cms/shared';
 import { MediaPicker } from './media-picker';
+import { FooterTextEditor } from './footer-text-editor';
 import { cn } from '@/lib/utils';
 
 interface BlockPropertiesProps {
@@ -233,14 +234,12 @@ function TabsEditor({
               </div>
 
               <div className="space-y-1">
-                <label className="label text-xs">Content (HTML)</label>
-                <textarea
-                  className="input text-xs font-mono min-h-[120px] resize-y"
-                  placeholder="<p>Tab content...</p>"
+                <label className="label text-xs">Content</label>
+                <FooterTextEditor
                   value={tab.content}
-                  onChange={(e) => updateTab(i, 'content', e.target.value)}
+                  onChange={(html) => updateTab(i, 'content', html)}
+                  compact
                 />
-                <p className="text-xs text-muted-foreground">Supports HTML tags: &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;, &lt;a&gt;, etc.</p>
               </div>
             </div>
           )}
@@ -339,8 +338,9 @@ function StatsEditor({ items, onChange }: { items: StatItem[]; onChange: (next: 
 
 // ── Testimonials Editor ───────────────────────────────────────────────────────
 
-function TestimonialsEditor({ items, onChange }: { items: TestimonialItem[]; onChange: (next: TestimonialItem[]) => void }) {
+function TestimonialsEditor({ items, onChange, companyId }: { items: TestimonialItem[]; onChange: (next: TestimonialItem[]) => void; companyId?: string }) {
   const [open, setOpen] = useState<number | null>(0);
+  const [pickerIdx, setPickerIdx] = useState<number | null>(null);
   const upd = (i: number, f: keyof TestimonialItem, v: string) =>
     onChange(items.map((it, idx) => idx === i ? { ...it, [f]: v } : it));
   const add = () => { onChange([...items, { name: 'New Person', role: '', company: '', text: '', avatar: '' }]); setOpen(items.length); };
@@ -377,22 +377,42 @@ function TestimonialsEditor({ items, onChange }: { items: TestimonialItem[]; onC
                 <textarea className="input text-sm min-h-[72px] resize-y" value={item.text} onChange={(e) => upd(i, 'text', e.target.value)} placeholder="What they said…" />
               </div>
               <div className="space-y-1">
-                <label className="label text-xs">Avatar URL</label>
-                <input className="input text-sm" value={item.avatar} onChange={(e) => upd(i, 'avatar', e.target.value)} placeholder="https://…" />
+                <label className="label text-xs">Avatar</label>
+                <div className="flex gap-2">
+                  <input className="input text-sm flex-1 min-w-0" value={item.avatar} onChange={(e) => upd(i, 'avatar', e.target.value)} placeholder="Paste URL or browse…" />
+                  {companyId && (
+                    <button type="button" className="btn-secondary shrink-0 p-2" onClick={() => setPickerIdx(i)}>
+                      <ImageIcon className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                {item.avatar && (
+                  <img src={item.avatar} alt={item.name} className="w-12 h-12 rounded-full object-cover mt-1"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
+                )}
               </div>
             </div>
           )}
         </div>
       ))}
       <button type="button" className="btn-secondary w-full btn-sm" onClick={add}><Plus className="w-4 h-4" /> Add Testimonial</button>
+
+      {pickerIdx !== null && companyId && (
+        <MediaPicker
+          companyId={companyId}
+          onSelect={(url) => { upd(pickerIdx, 'avatar', url); setPickerIdx(null); }}
+          onClose={() => setPickerIdx(null)}
+        />
+      )}
     </div>
   );
 }
 
 // ── Team Editor ───────────────────────────────────────────────────────────────
 
-function TeamEditor({ members, onChange }: { members: TeamMember[]; onChange: (next: TeamMember[]) => void }) {
+function TeamEditor({ members, onChange, companyId }: { members: TeamMember[]; onChange: (next: TeamMember[]) => void; companyId?: string }) {
   const [open, setOpen] = useState<number | null>(0);
+  const [pickerIdx, setPickerIdx] = useState<number | null>(null);
   const upd = (i: number, f: keyof TeamMember, v: string) =>
     onChange(members.map((m, idx) => idx === i ? { ...m, [f]: v } : m));
   const add = () => { onChange([...members, { name: 'New Member', role: '', image: '', bio: '' }]); setOpen(members.length); };
@@ -421,8 +441,15 @@ function TeamEditor({ members, onChange }: { members: TeamMember[]; onChange: (n
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="label text-xs">Photo URL</label>
-                <input className="input text-sm" value={member.image} onChange={(e) => upd(i, 'image', e.target.value)} placeholder="https://…" />
+                <label className="label text-xs">Photo</label>
+                <div className="flex gap-2">
+                  <input className="input text-sm flex-1 min-w-0" value={member.image} onChange={(e) => upd(i, 'image', e.target.value)} placeholder="Paste URL or browse…" />
+                  {companyId && (
+                    <button type="button" className="btn-secondary shrink-0 p-2" onClick={() => setPickerIdx(i)}>
+                      <ImageIcon className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
                 {member.image && (
                   <img src={member.image} alt={member.name} className="w-16 h-16 rounded-full object-cover mt-1"
                     onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -437,6 +464,14 @@ function TeamEditor({ members, onChange }: { members: TeamMember[]; onChange: (n
         </div>
       ))}
       <button type="button" className="btn-secondary w-full btn-sm" onClick={add}><Plus className="w-4 h-4" /> Add Member</button>
+
+      {pickerIdx !== null && companyId && (
+        <MediaPicker
+          companyId={companyId}
+          onSelect={(url) => { upd(pickerIdx, 'image', url); setPickerIdx(null); }}
+          onClose={() => setPickerIdx(null)}
+        />
+      )}
     </div>
   );
 }
@@ -581,11 +616,12 @@ function ColumnsChildrenEditor({ children, onChange }: { children: ColumnChild[]
           </div>
           {open === i && (
             <div className="p-3 border-t space-y-1">
-              <label className="label text-xs">HTML Content</label>
-              <textarea className="input text-xs font-mono min-h-[100px] resize-y"
-                placeholder="<p>Column content...</p>"
+              <label className="label text-xs">Content</label>
+              <FooterTextEditor
                 value={child.html || ''}
-                onChange={(e) => upd(i, e.target.value)} />
+                onChange={(html) => upd(i, html)}
+                compact
+              />
             </div>
           )}
         </div>
@@ -724,7 +760,7 @@ export function BlockProperties({ block, onChange, companyId, currentLang }: Blo
     }
 
     if (key === 'items' && block.type === 'testimonials') {
-      return <TestimonialsEditor key={key} items={(value as TestimonialItem[]) || []} onChange={(next) => update(key, next)} />;
+      return <TestimonialsEditor key={key} items={(value as TestimonialItem[]) || []} onChange={(next) => update(key, next)} companyId={companyId} />;
     }
 
     if (key === 'items' && block.type === 'faq') {
@@ -740,7 +776,7 @@ export function BlockProperties({ block, onChange, companyId, currentLang }: Blo
     }
 
     if (key === 'members') {
-      return <TeamEditor key={key} members={(value as TeamMember[]) || []} onChange={(next) => update(key, next)} />;
+      return <TeamEditor key={key} members={(value as TeamMember[]) || []} onChange={(next) => update(key, next)} companyId={companyId} />;
     }
 
     if (key === 'logos') {
