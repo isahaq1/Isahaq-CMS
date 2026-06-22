@@ -5,115 +5,126 @@ import path from 'path';
 import fs from 'fs';
 import { readEnv } from '../utils/env.js';
 
+const TOTAL_STEPS = 3;
+
+function step(n, label) {
+  return `${pc.dim(`[${n}/${TOTAL_STEPS}]`)} ${label}`;
+}
+
+function elapsed(start) {
+  return pc.dim(`${((Date.now() - start) / 1000).toFixed(1)}s`);
+}
+
 export async function runMigrate(projectDir) {
   const env = readEnv(projectDir);
   if (!env.DATABASE_URL) {
-    console.error(pc.red('DATABASE_URL not found in .env — run setup first.'));
+    console.error(pc.red('  DATABASE_URL not found in .env — run setup first.'));
     process.exit(1);
   }
 
   const apiDir = findApiDir(projectDir);
   if (!apiDir) {
-    console.error(pc.red('Could not find apps/api directory with a Prisma schema.'));
+    console.error(pc.red('  Could not find apps/api directory with a Prisma schema.'));
     process.exit(1);
   }
 
   const schemaPath = path.join(apiDir, 'prisma', 'schema.prisma');
   const dbType = env.DB_TYPE || 'postgresql';
   const provider = dbType === 'mysql' ? 'mysql' : 'postgresql';
+  const dbLabel = provider === 'mysql'
+    ? pc.yellow('MySQL')
+    : pc.blue('PostgreSQL');
 
-  // Patch schema.prisma provider
   patchSchemaProvider(schemaPath, provider);
 
   if (provider === 'mysql') {
-    // MySQL: remove PostgreSQL-generated migration files — they contain PG-specific SQL
-    // (CREATE TYPE for enums, etc.) that MySQL cannot execute.
-    // prisma db push creates the schema directly from models — no migration history needed.
     clearMigrations(apiDir);
   } else {
-    // PostgreSQL: keep existing migrations, just sync the lock file provider
     patchMigrationLock(apiDir, provider);
   }
 
-  // Use the project's own prisma binary (avoids npx path resolution issues in monorepos)
   const prismaBin = path.join(projectDir, 'node_modules', '.bin', 'prisma');
   if (!fs.existsSync(prismaBin)) {
-    console.error(pc.red('Prisma binary not found — make sure dependencies are installed first.'));
+    console.error(pc.red('  Prisma binary not found — install dependencies first.'));
     process.exit(1);
   }
 
   const execEnv = { ...process.env, DATABASE_URL: env.DATABASE_URL };
   const s = spinner();
 
-  // 1. Generate Prisma client
-  s.start('Generating Prisma client…');
+  // ── [1/3] Generate Prisma client ─────────────────────────────────────────────
+  let t = Date.now();
+  s.start(step(1, 'Generating Prisma client…'));
   try {
     await execa(prismaBin, ['generate', '--schema', schemaPath], {
       cwd: projectDir,
       env: execEnv,
     });
-    s.stop(pc.green('✓ Prisma client generated'));
+    s.stop(pc.green('✓ Prisma client generated') + ` ${elapsed(t)}`);
   } catch (err) {
     s.stop(pc.red('✗ prisma generate failed'));
-    console.error(err.stderr || err.message);
+    console.error(pc.dim(err.stderr || err.message));
     process.exit(1);
   }
 
-  // 2. Apply schema to database
+  // ── [2/3] Apply schema ───────────────────────────────────────────────────────
+  t = Date.now();
   if (provider === 'mysql') {
-    // db push: applies schema directly from Prisma models — works cleanly on a fresh MySQL DB
-    s.start('Pushing schema to MySQL database…');
+    s.start(step(2, `Pushing schema to ${dbLabel} database…`));
     try {
       await execa(
         prismaBin,
         ['db', 'push', '--schema', schemaPath, '--accept-data-loss'],
         { cwd: projectDir, env: execEnv },
       );
-      s.stop(pc.green('✓ Schema pushed to MySQL'));
+      s.stop(pc.green('✓ Schema pushed to MySQL') + ` ${elapsed(t)}`);
     } catch (err) {
       s.stop(pc.red('✗ db push failed'));
-      console.error(err.stderr || err.message);
+      console.error(pc.dim(err.stderr || err.message));
       process.exit(1);
     }
   } else {
-    // migrate deploy: applies existing PostgreSQL migration files in order
-    s.start('Running database migrations…');
+    s.start(step(2, `Running migrations on ${dbLabel} database…`));
     try {
       await execa(
         prismaBin,
         ['migrate', 'deploy', '--schema', schemaPath],
         { cwd: projectDir, env: execEnv },
       );
-      s.stop(pc.green('✓ Migrations applied'));
+      s.stop(pc.green('✓ Migrations applied') + ` ${elapsed(t)}`);
     } catch (err) {
       s.stop(pc.red('✗ Migration failed'));
-      console.error(err.stderr || err.message);
+      console.error(pc.dim(err.stderr || err.message));
       process.exit(1);
     }
   }
 
-  // 3. Seed if seed file exists
+  // ── [3/3] Seed ────────────────────────────────────────────────────────────────
   const seedFile = path.join(apiDir, 'prisma', 'seed.ts');
   if (fs.existsSync(seedFile)) {
+    t = Date.now();
     const tsxBin = path.join(projectDir, 'node_modules', '.bin', 'tsx');
-    s.start('Running seed (first-run only)…');
+    s.start(step(3, 'Running seed…'));
     try {
-      await execa(tsxBin, [seedFile], {
-        cwd: projectDir,
-        env: execEnv,
-      });
-      s.stop(pc.green('✓ Seed complete'));
+      await execa(tsxBin, [seedFile], { cwd: projectDir, env: execEnv });
+      s.stop(pc.green('✓ Database seeded') + ` ${elapsed(t)}`);
     } catch {
       s.stop(pc.yellow('⚠ Seed skipped (already seeded or failed — safe to ignore)'));
     }
+  } else {
+    console.log(`  ${pc.dim(`[${TOTAL_STEPS}/${TOTAL_STEPS}]`)} ${pc.dim('No seed file found — skipping')}`);
   }
 
   note(
-    'Database is ready. Start the project with:\n' +
-    pc.cyan('  npm run dev'),
-    'Done'
+    [
+      `  ${pc.bold('Database')}   ${dbLabel} — schema applied`,
+      `  ${pc.bold('Start dev')}  ${pc.cyan('npm run dev')}`,
+    ].join('\n'),
+    pc.green('✓ Database ready')
   );
 }
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function findApiDir(projectDir) {
   const candidates = [
@@ -133,9 +144,7 @@ function patchSchemaProvider(schemaPath, provider) {
     /(datasource\s+\w+\s*\{[^}]*provider\s*=\s*")[^"]+(")/s,
     `$1${provider}$2`
   );
-  if (patched !== content) {
-    fs.writeFileSync(schemaPath, patched, 'utf8');
-  }
+  if (patched !== content) fs.writeFileSync(schemaPath, patched, 'utf8');
 }
 
 function patchMigrationLock(apiDir, provider) {
@@ -143,12 +152,9 @@ function patchMigrationLock(apiDir, provider) {
   if (!fs.existsSync(lockPath)) return;
   const content = fs.readFileSync(lockPath, 'utf8');
   const patched = content.replace(/provider\s*=\s*"[^"]+"/, `provider = "${provider}"`);
-  if (patched !== content) {
-    fs.writeFileSync(lockPath, patched, 'utf8');
-  }
+  if (patched !== content) fs.writeFileSync(lockPath, patched, 'utf8');
 }
 
-// Remove PostgreSQL-generated migration files — MySQL uses db push instead
 function clearMigrations(apiDir) {
   const migrationsDir = path.join(apiDir, 'prisma', 'migrations');
   if (fs.existsSync(migrationsDir)) {

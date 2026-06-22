@@ -2,7 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import type { PageBlock, BlockType } from '@group-cms/shared';
-import { Star, Zap, Shield, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  Star, Zap, Shield, ChevronLeft, ChevronRight,
+  Heart, Check, Globe, Settings, Lock, Rocket, Clock,
+  Users, Mail, Phone, Code, Database, Cloud, Award,
+  Lightbulb, Target, TrendingUp, Layers, Box, Cpu,
+  Eye, Headphones, Map, MessageCircle, Smile, Thumbsup,
+  Wrench, BarChart, Search,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function resolveText(value: unknown, lang: string): string {
@@ -15,7 +22,10 @@ export function resolveText(value: unknown, lang: string): string {
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Star, Zap, Shield,
+  Star, Zap, Shield, Heart, Check, Globe, Settings, Lock, Rocket, Clock,
+  Users, Mail, Phone, Code, Database, Cloud, Award, Lightbulb, Target,
+  TrendingUp, Layers, Box, Cpu, Eye, Headphones, Map, MessageCircle,
+  Smile, Thumbsup, Wrench, BarChart, Search,
 };
 
 // Maps shorthand font keys to CSS font-family stacks

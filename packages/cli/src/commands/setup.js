@@ -8,30 +8,43 @@ import { readEnv, writeEnv } from '../utils/env.js';
 export async function runSetup(projectDir) {
   const existing = readEnv(projectDir);
 
-  note(
-    existing.DATABASE_URL
-      ? pc.yellow('DATABASE_URL already exists — values below will update it.')
-      : 'Enter your database details.',
-    'Database Configuration'
-  );
+  // Show existing-config notice
+  if (existing.DATABASE_URL) {
+    note(
+      pc.yellow('An existing .env was found — answering will overwrite it.'),
+      'Update Database Config'
+    );
+  }
 
   // ── Database type ────────────────────────────────────────────────────────────
   const dbType = await select({
     message: 'Database type',
     options: [
-      { value: 'postgresql', label: 'PostgreSQL' },
-      { value: 'mysql',      label: 'MySQL' },
+      {
+        value: 'postgresql',
+        label: `${pc.blue('●')} PostgreSQL  ${pc.dim('(recommended)')}`,
+        hint: 'port 5432',
+      },
+      {
+        value: 'mysql',
+        label: `${pc.yellow('●')} MySQL`,
+        hint: 'port 3306',
+      },
     ],
     initialValue: existing.DB_TYPE || 'postgresql',
   });
   if (isCancel(dbType)) return cancel('Setup cancelled.');
 
-  const defaultPort = dbType === 'mysql' ? '3306' : '5432';
-  const defaultUser = dbType === 'mysql' ? 'root' : 'postgres';
+  const isMySQL = dbType === 'mysql';
+  const defaultPort = isMySQL ? '3306' : '5432';
+  const defaultUser = isMySQL ? 'root' : 'postgres';
+  const dbLabel    = isMySQL ? pc.yellow('MySQL') : pc.blue('PostgreSQL');
+
+  console.log(`\n  ${pc.bold('Configuring')} ${dbLabel} connection\n`);
 
   // ── Host ─────────────────────────────────────────────────────────────────────
   const host = await text({
-    message: 'Database host',
+    message: 'Host',
     placeholder: 'localhost',
     defaultValue: existing.DB_HOST || 'localhost',
   });
@@ -39,7 +52,7 @@ export async function runSetup(projectDir) {
 
   // ── Port ─────────────────────────────────────────────────────────────────────
   const port = await text({
-    message: 'Database port',
+    message: 'Port',
     placeholder: defaultPort,
     defaultValue: existing.DB_PORT || defaultPort,
     validate: (v) => (isNaN(Number(v)) ? 'Must be a number' : undefined),
@@ -57,7 +70,7 @@ export async function runSetup(projectDir) {
 
   // ── User ─────────────────────────────────────────────────────────────────────
   const user = await text({
-    message: 'Database user',
+    message: 'User',
     placeholder: defaultUser,
     defaultValue: existing.DB_USER || defaultUser,
     validate: (v) => (!v.trim() ? 'Required' : undefined),
@@ -66,14 +79,14 @@ export async function runSetup(projectDir) {
 
   // ── Password ─────────────────────────────────────────────────────────────────
   const pwd = await password({
-    message: 'Database password',
+    message: 'Password',
     validate: (v) => (v === undefined ? 'Required' : undefined),
   });
   if (isCancel(pwd)) return cancel('Setup cancelled.');
 
   // ── JWT secret ───────────────────────────────────────────────────────────────
   const jwtSecret = await text({
-    message: 'JWT secret (leave blank to auto-generate)',
+    message: 'JWT secret  (blank = auto-generate)',
     placeholder: '<auto-generate>',
     defaultValue: existing.JWT_SECRET || '',
   });
@@ -98,14 +111,14 @@ export async function runSetup(projectDir) {
 
   if (shouldTest) {
     const s = spinner();
-    s.start('Connecting to database…');
+    s.start(`Testing ${dbLabel} connection…`);
     const result = await testConnection(url);
     if (result.ok) {
-      s.stop(pc.green('✓ Connection successful'));
+      s.stop(pc.green(`✓ Connected to ${isMySQL ? 'MySQL' : 'PostgreSQL'} successfully`));
     } else {
       s.stop(pc.red('✗ Connection failed: ' + result.error));
       const force = await confirm({
-        message: 'Save anyway? (you can fix the credentials later)',
+        message: 'Save credentials anyway? (you can fix them later)',
         initialValue: false,
       });
       if (isCancel(force) || !force) return cancel('Setup cancelled.');
@@ -114,14 +127,18 @@ export async function runSetup(projectDir) {
 
   // ── Write .env ───────────────────────────────────────────────────────────────
   const secret = jwtSecret || generateSecret();
+  const resolvedHost = host || 'localhost';
+  const resolvedPort = port || defaultPort;
+  const resolvedName = database || 'group_cms';
+  const resolvedUser = user || defaultUser;
 
   const vars = {
     DATABASE_URL: url,
     DB_TYPE: dbType,
-    DB_HOST: host || 'localhost',
-    DB_PORT: port || defaultPort,
-    DB_NAME: database || 'group_cms',
-    DB_USER: user || defaultUser,
+    DB_HOST: resolvedHost,
+    DB_PORT: resolvedPort,
+    DB_NAME: resolvedName,
+    DB_USER: resolvedUser,
     JWT_SECRET: secret,
     JWT_EXPIRES_IN: existing.JWT_EXPIRES_IN || '7d',
     API_PORT: existing.API_PORT || '4000',
@@ -135,11 +152,11 @@ export async function runSetup(projectDir) {
 
   note(
     [
-      `${pc.dim('File:')}     ${envPath}`,
-      `${pc.dim('Type:')}     ${dbType === 'mysql' ? 'MySQL' : 'PostgreSQL'}`,
-      `${pc.dim('Host:')}     ${vars.DB_HOST}:${vars.DB_PORT}`,
-      `${pc.dim('Database:')} ${vars.DB_NAME}`,
-      `${pc.dim('User:')}     ${vars.DB_USER}`,
+      `  ${pc.dim('File')}      ${pc.dim(envPath)}`,
+      `  ${pc.dim('Type')}      ${dbLabel}`,
+      `  ${pc.dim('Host')}      ${resolvedHost}:${resolvedPort}`,
+      `  ${pc.dim('Database')} ${resolvedName}`,
+      `  ${pc.dim('User')}      ${resolvedUser}`,
     ].join('\n'),
     pc.green('✓ .env written')
   );

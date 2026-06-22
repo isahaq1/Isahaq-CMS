@@ -42,6 +42,95 @@ const IMAGE_URL_KEYS = new Set(['src', 'backgroundImage']);
 type Tab = 'content' | 'style' | 'layout' | 'advanced';
 type GalleryImage = { src: string; alt: string };
 type Slide = { src: string; alt: string; title: string; subtitle: string; link: string };
+type FeatureItem = { icon: string; title: string; description: string };
+
+const FEATURE_ICONS = [
+  'Star', 'Zap', 'Shield', 'Heart', 'Check', 'Globe', 'Settings', 'Lock',
+  'Rocket', 'Clock', 'Users', 'Mail', 'Phone', 'Code', 'Database', 'Cloud',
+  'Award', 'Lightbulb', 'Target', 'TrendingUp', 'Layers', 'Box', 'Cpu',
+  'Eye', 'Headphones', 'Map', 'MessageCircle', 'Smile', 'Thumbsup',
+  'Wrench', 'BarChart', 'Search',
+];
+
+function FeaturesItemsEditor({
+  items,
+  onChange,
+}: {
+  items: FeatureItem[];
+  onChange: (next: FeatureItem[]) => void;
+}) {
+  const update = (i: number, field: keyof FeatureItem, value: string) => {
+    const next = items.map((item, idx) => idx === i ? { ...item, [field]: value } : item);
+    onChange(next);
+  };
+
+  const remove = (i: number) => onChange(items.filter((_, idx) => idx !== i));
+
+  const add = () =>
+    onChange([...items, { icon: 'Star', title: 'New Feature', description: 'Feature description' }]);
+
+  return (
+    <div className="space-y-3">
+      <label className="label">Items</label>
+      {items.map((item, i) => (
+        <div key={i} className="border rounded-lg p-3 space-y-2 bg-gray-50">
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Item {i + 1}</span>
+            <button
+              type="button"
+              className="text-red-400 hover:text-red-600 p-1 rounded"
+              onClick={() => remove(i)}
+              title="Remove item"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="space-y-1">
+            <label className="label text-xs">Icon</label>
+            <select
+              className="input text-sm"
+              value={item.icon}
+              onChange={(e) => update(i, 'icon', e.target.value)}
+            >
+              {FEATURE_ICONS.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="space-y-1">
+            <label className="label text-xs">Title</label>
+            <input
+              className="input text-sm"
+              placeholder="Feature title"
+              value={item.title}
+              onChange={(e) => update(i, 'title', e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="label text-xs">Description</label>
+            <textarea
+              className="input text-sm min-h-[64px] resize-y"
+              placeholder="Feature description"
+              value={item.description}
+              onChange={(e) => update(i, 'description', e.target.value)}
+            />
+          </div>
+        </div>
+      ))}
+
+      <button
+        type="button"
+        className="btn-secondary w-full btn-sm"
+        onClick={add}
+      >
+        <Plus className="w-4 h-4" /> Add Item
+      </button>
+    </div>
+  );
+}
 
 function getLangValue(value: unknown, lang: string): string {
   if (!value) return '';
@@ -148,6 +237,16 @@ export function BlockProperties({ block, onChange, companyId, currentLang }: Blo
           <label className="label capitalize">{key}</label>
           <textarea className="input min-h-[120px] font-mono text-xs" value={String(value)} onChange={(e) => update(key, e.target.value)} />
         </div>
+      );
+    }
+
+    if (key === 'items' && block.type === 'features') {
+      return (
+        <FeaturesItemsEditor
+          key={key}
+          items={(value as FeatureItem[]) || []}
+          onChange={(next) => update(key, next)}
+        />
       );
     }
 
