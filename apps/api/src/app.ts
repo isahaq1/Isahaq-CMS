@@ -11,6 +11,7 @@ import navigationRoutes from './routes/navigation';
 import mediaRoutes from './routes/media';
 import dashboardRoutes from './routes/dashboard';
 import languageRoutes from './routes/languages';
+import userRoutes from './routes/users';
 import publicRoutes from './routes/public';
 
 const app = express();
@@ -41,6 +42,7 @@ app.use('/api/navigation', navigationRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/languages', languageRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/public', publicRoutes);
 
 app.use((_req, res) => {

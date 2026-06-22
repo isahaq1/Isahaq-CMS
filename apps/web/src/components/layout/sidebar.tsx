@@ -13,19 +13,21 @@ import {
   Languages,
   LogOut,
   ChevronRight,
+  Users,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/store/auth';
 
 const navItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/groups', label: 'Groups', icon: Layers },
-  { href: '/dashboard/companies', label: 'Companies', icon: Building2 },
-  { href: '/dashboard/sites', label: 'Sites', icon: Globe },
-  { href: '/dashboard/pages', label: 'Pages', icon: FileText },
-  { href: '/dashboard/media', label: 'Media', icon: Image },
-  { href: '/dashboard/navigation', label: 'Navigation', icon: Menu },
-  { href: '/dashboard/languages', label: 'Languages', icon: Languages },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: null },
+  { href: '/dashboard/groups', label: 'Groups', icon: Layers, roles: null },
+  { href: '/dashboard/companies', label: 'Companies', icon: Building2, roles: null },
+  { href: '/dashboard/sites', label: 'Sites', icon: Globe, roles: null },
+  { href: '/dashboard/pages', label: 'Pages', icon: FileText, roles: null },
+  { href: '/dashboard/media', label: 'Media', icon: Image, roles: null },
+  { href: '/dashboard/navigation', label: 'Navigation', icon: Menu, roles: null },
+  { href: '/dashboard/languages', label: 'Languages', icon: Languages, roles: null },
+  { href: '/dashboard/users', label: 'Users', icon: Users, roles: ['SUPER_ADMIN'] },
 ];
 
 export function Sidebar() {
@@ -55,25 +57,27 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-muted-foreground hover:bg-accent hover:text-foreground'
-              )}
-            >
-              <item.icon className="w-5 h-5" />
-              {item.label}
-              {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
-            </Link>
-          );
-        })}
+        {navItems
+          .filter((item) => !item.roles || (hasHydrated && item.roles.includes(user?.role ?? '')))
+          .map((item) => {
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-accent hover:text-foreground'
+                )}
+              >
+                <item.icon className="w-5 h-5" />
+                {item.label}
+                {isActive && <ChevronRight className="w-4 h-4 ml-auto" />}
+              </Link>
+            );
+          })}
       </nav>
 
       <div className="p-4 border-t border-border">

@@ -174,6 +174,90 @@ npx create-group-cms --version
 | **Company Admin** | Manage their company's sites, pages, media, and navigation      |
 | **Editor**        | Edit pages and media within assigned companies                  |
 
+---
+
+## User Management
+
+User management is available to **Super Admins** only under **Dashboard → Users**.
+
+### Default Credentials
+
+After running the seed, one super-admin account is created automatically:
+
+| Field    | Value                |
+| -------- | -------------------- |
+| Email    | `admin@groupcms.com` |
+| Password | `admin123`           |
+| Role     | `SUPER_ADMIN`        |
+
+> Change the password immediately after your first login.
+
+---
+
+### Managing Users from the Dashboard
+
+Navigate to **Dashboard → Users** (visible only to Super Admins).
+
+| Action              | How                                                                  |
+| ------------------- | -------------------------------------------------------------------- |
+| **Add user**        | Click **Add User**, fill in name, email, password, and role          |
+| **Edit user**       | Click the pencil icon on any row to update name, email, or role      |
+| **Change password** | Click the key icon to set a new password for any user                |
+| **Delete user**     | Click the trash icon — you cannot delete your own account            |
+
+---
+
+### Roles
+
+| Role              | What they can do                                                    |
+| ----------------- | ------------------------------------------------------------------- |
+| **Super Admin**   | Full access — manage all groups, companies, sites, users, and roles |
+| **Group Admin**   | Manage all companies and sites within their assigned group(s)       |
+| **Company Admin** | Manage sites, pages, media, and navigation within their company     |
+| **Editor**        | Edit pages and upload media within their assigned company           |
+
+#### Role Permissions
+
+| Permission                     | Super Admin | Group Admin | Company Admin | Editor |
+| ------------------------------ | :---------: | :---------: | :-----------: | :----: |
+| Manage users & roles           | ✓           |             |               |        |
+| Manage all groups              | ✓           |             |               |        |
+| Manage all companies           | ✓           |             |               |        |
+| Manage group's companies       | ✓           | ✓           |               |        |
+| Manage group's sites & pages   | ✓           | ✓           |               |        |
+| Manage company's sites         | ✓           | ✓           | ✓             |        |
+| Manage pages, media, nav       | ✓           | ✓           | ✓             |        |
+| Edit pages & upload media      | ✓           | ✓           | ✓             | ✓      |
+| View dashboard                 | ✓           | ✓           | ✓             | ✓      |
+
+---
+
+### User API Endpoints
+
+All endpoints require a valid `SUPER_ADMIN` JWT.
+
+```bash
+# List all users
+GET /api/users
+
+# Create a user
+POST /api/users
+{ "name": "Jane Smith", "email": "jane@example.com", "password": "secret123", "role": "EDITOR" }
+
+# Update name / email / role
+PUT /api/users/:id
+{ "name": "Jane Doe", "role": "COMPANY_ADMIN" }
+
+# Change a user's password
+PUT /api/users/:id/password
+{ "password": "new-secure-password" }
+
+# Delete a user
+DELETE /api/users/:id
+```
+
+---
+
 ### 🌍 Multi-Language Support
 
 - Create any number of languages from the dashboard
