@@ -1,6 +1,6 @@
 {
   "name": "create-group-cms",
-  "version": "1.0.9",
+  "version": "1.1.0",
   "description": "Scaffold a full-stack multi-site CMS — Next.js 15, Express, PostgreSQL or MySQL, Prisma, Tailwind CSS",
   "keywords": [
     "cms",
