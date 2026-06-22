@@ -141,6 +141,33 @@ function getAppearance(props: Record<string, unknown>, primaryColor: string) {
 type AppearanceResult = ReturnType<typeof getAppearance>;
 type Slide = { src: string; alt: unknown; title?: unknown; subtitle?: unknown; link?: string };
 
+// Convert any video platform watch URL to its embeddable equivalent.
+// Falls back to the URL as-is (e.g. user already provided an embed URL).
+function toEmbedUrl(url: string): string {
+  if (!url) return '';
+  // YouTube: watch?v=, youtu.be/, shorts/, already embed/
+  const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  // Vimeo
+  const vimeo = url.match(/(?:vimeo\.com\/)(\d+)/);
+  if (vimeo) return `https://player.vimeo.com/video/${vimeo[1]}`;
+  // Dailymotion
+  const dm = url.match(/dailymotion\.com\/video\/([a-zA-Z0-9]+)/);
+  if (dm) return `https://www.dailymotion.com/embed/video/${dm[1]}`;
+  // Wistia
+  const wistia = url.match(/wistia\.(?:com|net)\/medias\/([a-zA-Z0-9]+)/);
+  if (wistia) return `https://fast.wistia.net/embed/iframe/${wistia[1]}`;
+  // Facebook video
+  const fb = url.match(/facebook\.com\/.*\/videos\/(\d+)/);
+  if (fb) return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false`;
+  // Return as-is — covers other platforms' embed URLs and direct video files
+  return url;
+}
+
+function isDirectVideoFile(url: string): boolean {
+  return /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url);
+}
+
 // ── Countdown Block ───────────────────────────────────────────────────────────
 
 function CountdownBlock({ block, ap }: { block: PageBlock; ap: AppearanceResult }) {
@@ -552,13 +579,25 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
       content = <SliderBlock block={block} isPreview={isPreview} language={language} ap={ap} />;
       break;
 
-    case 'video':
+    case 'video': {
+      const rawVideoUrl = String(props.url || '');
+      const embedVideoUrl = toEmbedUrl(rawVideoUrl);
       content = (
         <div className="max-w-4xl mx-auto px-6 py-8" style={ap.wrapOverride}>
-          {props.url ? (
+          {rawVideoUrl ? (
             <div className="aspect-video overflow-hidden bg-black"
               style={{ borderRadius: ap.cardStyle.borderRadius || '0.75rem', boxShadow: ap.cardStyle.boxShadow }}>
-              <iframe src={String(props.url)} className="w-full h-full" allowFullScreen />
+              {isDirectVideoFile(rawVideoUrl) ? (
+                <video src={rawVideoUrl} className="w-full h-full" controls />
+              ) : (
+                <iframe
+                  src={embedVideoUrl}
+                  className="w-full h-full"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                />
+              )}
             </div>
           ) : (
             <div className="aspect-video bg-gray-100 flex items-center justify-center text-gray-400" style={ap.cardStyle}>
@@ -568,6 +607,7 @@ export function BlockRenderer({ block, isPreview = false, primaryColor = '#2563e
         </div>
       );
       break;
+    }
 
     case 'cta': {
       const ctaBg = props.cardBg ? String(props.cardBg) : ap.accent;
