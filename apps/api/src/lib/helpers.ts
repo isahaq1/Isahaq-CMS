@@ -3,23 +3,27 @@ import { prisma } from '../lib/prisma';
 import { Prisma } from '@prisma/client';
 
 export async function logActivity(
-  userId: string,
+  userId: string | undefined | null,
   action: string,
   entityType: string,
   entityId: string,
   entityName: string,
   metadata?: Record<string, unknown>
 ) {
-  await prisma.activityLog.create({
-    data: {
-      userId,
-      action,
-      entityType,
-      entityId,
-      entityName,
-      metadata: metadata ? (metadata as Prisma.InputJsonValue) : undefined,
-    },
-  });
+  try {
+    await prisma.activityLog.create({
+      data: {
+        userId: userId ?? null,
+        action,
+        entityType,
+        entityId,
+        entityName,
+        metadata: metadata ? (metadata as Prisma.InputJsonValue) : undefined,
+      },
+    });
+  } catch {
+    // Non-fatal — activity logging should never break the actual operation
+  }
 }
 
 export function omitPassword<T extends { password?: string }>(user: T) {

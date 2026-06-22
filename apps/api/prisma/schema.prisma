@@ -161,7 +161,7 @@ model Language {
 
 model ActivityLog {
   id         String   @id @default(uuid())
-  userId     String
+  userId     String?
   action     String
   entityType String
   entityId   String
@@ -169,5 +169,5 @@ model ActivityLog {
   metadata   Json?
   createdAt  DateTime @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
